@@ -16,8 +16,8 @@ import common as C  # noqa: E402
 import operar as O  # noqa: E402
 from finora.funnel_synth import CHANNELS  # noqa: E402
 
-S_MON = "Revisión mensual del MRR · CFO"
-S_WEEK = "Revisión semanal del funnel · CRO"
+S_MON = "Mensual del MRR · CFO"
+S_WEEK = "Semanal del funnel · CRO"
 SECTIONS = [S_MON, S_WEEK]
 
 T, section = C.page("tablero", SECTIONS, "para operar cada mes y cada semana", top_nav=True)

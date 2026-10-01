@@ -29,7 +29,13 @@ TICKET = {"micro": 25_000, "pequeña": 55_000, "mediana": 140_000}       # MRR C
 SDR_CAPACITY = 700                                                      # leads SDR/mes que el equipo atiende bien
 
 
-def generate(start="2023-01-01", end="2024-10-31", seed=42) -> tuple[pd.DataFrame, pd.DataFrame]:
+S2L_SIGMA = 1.2          # dispersión del tiempo al primer contacto (lognormal)
+LOST_P = 0.98            # probabilidad de que un lead que no se gana se cierre como perdido
+
+
+def generate(start="2023-01-01", end="2024-10-31", seed=42, target_ticket: float | None = None
+             ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """`target_ticket`: si se da (p. ej., el ticket de entrada real), el MRR de los ganados se escala a ese promedio."""
     rng = np.random.default_rng(seed)
     as_of = pd.Timestamp(end)
     months = pd.period_range(start, end, freq="M")
@@ -63,13 +69,14 @@ def generate(start="2023-01-01", end="2024-10-31", seed=42) -> tuple[pd.DataFram
                     ev += _post_sql(rng, ts, fit)
                 else:  # sdr_full
                     # speed-to-lead: empeora con la carga del equipo SDR (problema plantado #2)
-                    med_h = 1.5 * max(sdr_load, 0.6) ** 3
-                    s2l = float(rng.lognormal(np.log(med_h), 0.9))
+                    med_h = 1.6 * max(sdr_load, 0.6) ** 2.1
+                    s2l = float(rng.lognormal(np.log(med_h), S2L_SIGMA))
                     lv["speed_to_lead_h"] = s2l
                     if rng.random() < 0.92:
                         ts = ts + pd.Timedelta(hours=s2l)
                         ev.append(("Working", ts))
-                        speed_mult = 1.0 if s2l <= 1 else (0.8 if s2l <= 24 else 0.55)
+                        # la demora cuesta conversión dentro del mismo canal (problema plantado #2)
+                        speed_mult = 1.0 if s2l <= 1 else 0.75 if s2l <= 4 else 0.6 if s2l <= 24 else 0.45
                         if rng.random() < min(0.95, 0.42 * fit * speed_mult):
                             ts = ts + pd.Timedelta(days=float(rng.lognormal(np.log(4), 0.6)))
                             ev.append(("Engaged", ts))
@@ -79,13 +86,15 @@ def generate(start="2023-01-01", end="2024-10-31", seed=42) -> tuple[pd.DataFram
                                 ev += _post_sql(rng, ts, fit)
                 if ev[-1][0] == "Won":
                     lv["mrr_cop"] = TICKET[size] * float(rng.lognormal(0, 0.25))
-                elif rng.random() < 0.85:                           # la mayoría se cierra como perdido
+                elif rng.random() < LOST_P:                         # la mayoría se cierra como perdido
                     ev.append(("Lost", ev[-1][1] + pd.Timedelta(days=float(rng.lognormal(np.log(18), 0.6)))))
                 ev = [(s, t) for s, t in ev if t <= as_of]          # censura: lo que aún no pasa
                 leads.append(lv)
                 events += [(lead_id, s, t) for s, t in ev]
     leads_df = pd.DataFrame(leads)
     events_df = pd.DataFrame(events, columns=["lead_id", "stage", "ts"])
+    if target_ticket:                                      # coherencia con el tablero mensual (datos reales)
+        leads_df["mrr_cop"] *= target_ticket / leads_df["mrr_cop"].mean()
     return leads_df, events_df
 
 

@@ -1,4 +1,5 @@
 """Smoke test de las tres apps: cada sección se ejecuta sin errores (Streamlit AppTest, sin navegador)."""
+import sys
 from pathlib import Path
 
 import pytest
@@ -25,7 +26,9 @@ def _open(app: str, section: int | None = None) -> AppTest:
 
 def test_numero_de_secciones():
     for app, n in N_SECTIONS.items():
-        assert len(_nav(_open(app)).options) == n, app
+        options = _nav(_open(app)).options
+        assert len(options) == n, app
+        assert all(o.strip() for o in options), f"{app}: hay una sección sin nombre"
 
 
 @pytest.mark.parametrize("app,section", CASES)
@@ -69,3 +72,28 @@ def test_tablero_no_queda_sin_pagina():
     _nav(at).set_value(None).run()
     assert not at.exception, [e.message for e in at.exception]
     assert _nav(at).value == activa
+
+
+def _texts(at: AppTest) -> str:
+    return " ".join([m.value for m in at.markdown] + [t.value for t in at.title] + [c.value for c in at.caption])
+
+
+def test_las_cifras_de_la_nota_aparecen_igual_en_las_apps():
+    """Las cifras clave de NOTA_CORTA y HALLAZGOS (app/data/key_figures.csv) son las que muestran las apps."""
+    sys.path.insert(0, str(APP_DIR.parent))
+    from finora.figures import load_figures
+    f = load_figures()
+    checks = {
+        ("historia", 0): [f"{f['crec_mrr']} %", f"De {f['mrr_ini']} a {f['mrr_fin']} MM", f"({f['sm_vs_mrr']} veces)"],
+        ("historia", 1): [f"exagera el churn {f['x_churn']} veces", f"churn {f['cor_churn']} MM real contra {f['act_churn']} MM",
+                          f"entre {f['sens_xchurn_min']} y {f['sens_xchurn_max']} veces"],
+        ("historia", 2): [f"entran {f['caida_m3']} % más pequeños"],
+        ("demo", 1): [f"{f['cor_churn']} MM", f"{f['cliente']} MM", f"{f['cor_price']} MM", f"{f['half_techo']} MM",
+                      f"retienen {f['nrr_cor_2023']} % de su MRR a 12 meses, no {f['nrr_act_2023']} %"],
+        ("tablero", 0): [f"{f['mrr_fin']} MM", f"{f['mora_abierta']} MM de MRR está en mora",
+                         f"{f['precio_pend']} MM en {f['precio_pend_n']} clientes"],
+    }
+    for (app, section), expected in checks.items():
+        text = _texts(_open(app, section))
+        for s in expected:
+            assert s in text, f"{app} · sección {section}: falta «{s}»"

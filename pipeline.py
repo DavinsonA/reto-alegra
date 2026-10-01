@@ -22,17 +22,14 @@ def window_totals(br: pd.DataFrame) -> pd.Series:
     return w.sum()
 
 
-def rule_impact(tx: pd.DataFrame) -> pd.DataFrame:
-    """Cuánto cambia el puente según cada regla (sensibilidad): actual vs corregido con N=1/2/3 y sin pricing."""
-    rows = {}
-    rows["Modelo actual (caja)"] = window_totals(bridge(build_customer_month(tx, Rules()), "actual"))
-    for n in (1, 2, 3):
-        rows[f"Corregido N={n}"] = window_totals(bridge(build_customer_month(tx, Rules(gap_tolerance=n)), "corrected"))
-    rows["Corregido N=2 sin separar precio"] = window_totals(
-        bridge(build_customer_month(tx, Rules(detect_pricing=False)), "corrected"))
-    rows["Corregido N=2, mora final = churn"] = window_totals(
-        bridge(build_customer_month(tx, Rules(trailing_policy="churn")), "corrected"))
-    return (pd.DataFrame(rows).T.reindex(columns=ALL_MOVES).fillna(0) / MM).round(1)
+def count_tests() -> int:
+    """Número de pruebas que recoge pytest (la cifra que citan los documentos y la demo)."""
+    import re
+    import subprocess
+    import sys
+    out = subprocess.run([sys.executable, "-m", "pytest", "--collect-only", "-q"], capture_output=True, text=True,
+                         cwd=Path(__file__).resolve().parent).stdout
+    return int(re.search(r"(\d+) tests? collected", out).group(1))
 
 
 def kitagawa(w0: pd.Series, r0: pd.Series, w1: pd.Series, r1: pd.Series) -> tuple[pd.Series, pd.Series]:
@@ -65,10 +62,6 @@ def main() -> None:
     print(tot.round(1).to_string())
     net_change = (br_c.loc[pd.Period("2024-10", "M"), "mrr_close"] - br_c.loc[pd.Period("2022-03", "M"), "mrr_close"]) / MM
     print(f"cambio neto corregido: {net_change:.1f}")
-
-    impact = rule_impact(tx)
-    impact.to_csv(OUT / "rule_impact.csv")
-    print("\n=== Sensibilidad por regla (millones COP, acumulado de la ventana)\n", impact.to_string())
 
     w = cm[cm["month"] >= WINDOW_START]
     print("\n=== Clasificación de la caja que no es MRR (millones COP, ventana)")
@@ -167,8 +160,20 @@ def main() -> None:
 
     # ----- Tablas agregadas para la demo pública (sin detalle por cliente)
     from finora.aggregates import export_app_data
-    export_app_data(tx, ind, sm, Path(__file__).resolve().parent / "app" / "data")
+    app_data = Path(__file__).resolve().parent / "app" / "data"
+    export_app_data(tx, ind, sm, app_data)
     print("\nTablas agregadas para la demo escritas en app/data/")
+
+    # ----- Cifras clave: única fuente de los números de README, HALLAZGOS y NOTA_CORTA
+    from finora.figures import TEMPLATES, key_figures, render_docs
+    data = {n: pd.read_csv(app_data / f"{n}.csv") for n in
+            ("rule_sensitivity", "retention_cohorts", "half_cut_monthly", "new_customers_monthly", "cac_quarterly")}
+    figs = key_figures(cm, data, sm, count_tests())
+    pd.DataFrame({"cifra": list(figs), "valor": list(figs.values())}).to_csv(app_data / "key_figures.csv", index=False)
+    print(f"Cifras clave: {len(figs)} en app/data/key_figures.csv")
+    if TEMPLATES.exists():
+        render_docs(figs)
+        print("README.md, HALLAZGOS.md y NOTA_CORTA.md generados desde docs/plantillas/")
 
 
 if __name__ == "__main__":

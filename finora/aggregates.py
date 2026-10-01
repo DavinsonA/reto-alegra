@@ -22,6 +22,51 @@ SCENARIOS = {
 }
 
 
+INF = float("inf")
+# Sensibilidad: una regla a la vez, apagada o llevada a su extremo (escenario, regla, ajuste, reglas)
+RULE_SCENARIOS = [
+    ("Base: corregido (N = 2)", "—", "reglas por defecto", Rules()),
+    ("Mora tolerada N = 1", "Tolerancia de mora", "gap_tolerance = 1", Rules(gap_tolerance=1)),
+    ("Mora tolerada N = 3", "Tolerancia de mora", "gap_tolerance = 3", Rules(gap_tolerance=3)),
+    ("Mora final = churn", "Mora abierta al cierre", "trailing_policy = churn", Rules(trailing_policy="churn")),
+    ("Sin separar subidas de precio", "Subidas de precio", "detect_pricing = False", Rules(detect_pricing=False)),
+    ("Sin retroactivos", "Retroactivo de una subida", "retro_max_k = 0", Rules(retro_max_k=0)),
+    ("Sin prepagos", "Prepagos multi-mes", "prepay_min_amount = ∞", Rules(prepay_min_amount=INF)),
+    ("Sin puestas al día", "Puestas al día y pagos agrupados", "detect_catchup = False", Rules(detect_catchup=False)),
+    ("Sin picos", "Picos puntuales", "spike_factor = ∞", Rules(spike_factor=INF)),
+    ("Uso variable: nadie", "Clientes de uso variable", "usage_distinct_amounts = ∞", Rules(usage_distinct_amounts=10**9)),
+    ("Uso variable: todos", "Clientes de uso variable", "usage_distinct_amounts = 1", Rules(usage_distinct_amounts=1)),
+]
+SENS_MOVES = ["new", "expansion", "price_uplift", "reactivation", "contraction", "churn"]
+
+
+def nrr_12m(cm: pd.DataFrame, year: int, col: str = "mrr_cop") -> float:
+    """NRR a 12 meses de las altas de un año, ponderado por MRR inicial (misma definición que retention_cohorts)."""
+    first = cm.loc[cm["mv"] == "new", ["customer_id", "month"]].rename(columns={"month": "cohort_month"})
+    c = cm.merge(first[first["cohort_month"].dt.year == year], on="customer_id")
+    age = (c["month"] - c["first_paid_month"]).apply(lambda d: d.n)
+    start = c[age == 0].set_index("customer_id")[col]
+    end = c[age == 12].set_index("customer_id")[col]
+    ids = end.index
+    return float(end.sum() / start.reindex(ids).sum())
+
+
+def rule_sensitivity(tx: pd.DataFrame) -> pd.DataFrame:
+    """Movimientos acumulados de la ventana y NRR a 12 meses (altas 2023) con cada regla apagada, una a la vez."""
+    rows = []
+    base = build_customer_month(tx, Rules())
+    act = bridge(base, "actual")
+    tot = act.loc[act.index >= WINDOW_START, [m for m in SENS_MOVES if m in act.columns]].sum()
+    rows.append(("Modelo actual (caja)", "Referencia", "caja = MRR", *[tot.get(m, 0.0) for m in SENS_MOVES],
+                 nrr_12m(base, 2023, "mrr_actual_cop")))
+    for name, rule, how, rules in RULE_SCENARIOS:
+        cm = base if name.startswith("Base") else build_customer_month(tx, rules)
+        br = bridge(cm, "corrected")
+        tot = br.loc[br.index >= WINDOW_START, [m for m in SENS_MOVES if m in br.columns]].sum()
+        rows.append((name, rule, how, *[tot.get(m, 0.0) for m in SENS_MOVES], nrr_12m(cm, 2023)))
+    return pd.DataFrame(rows, columns=["escenario", "regla", "ajuste", *[f"{m}_cop" for m in SENS_MOVES], "nrr12_2023"])
+
+
 def _long_bridge(br: pd.DataFrame, scenario: str) -> pd.DataFrame:
     moves = [c for c in ALL_MOVES if c in br.columns]
     long = br[moves].reset_index().melt(id_vars="month", var_name="movement", value_name="amount_cop")
@@ -128,6 +173,9 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
     cac["payback_months_no_margin"] = cac["cac_cop"] / (cac["new_mrr_cop"] / cac["new_customers"])
     tables["cac_quarterly"] = cac
 
+    # --- sensibilidad: una regla a la vez
+    tables["rule_sensitivity"] = rule_sensitivity(tx)
+
     # --- calidad de datos (tabla de tratamiento)
     w = cm[cm["month"] >= WINDOW_START]
     dq = [
@@ -137,6 +185,8 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
         ("Pagos de puesta al día (k × monto)", f"{(w['extra_kind'] == 'arrears').sum()} pagos", "El exceso sale del MRR"),
         ("Retroactivo en subidas de precio", f"{(w['extra_kind'] == 'retro').sum()} pagos", "Subida = pricing; retroactivo = cargo único"),
         ("Prepagos multi-mes (p. ej., anual)", f"{(w['extra_kind'] == 'prepaid').sum()} pagos", "Se reparten en min(12, meses cubiertos)"),
+        ("Pago grande al final de la serie (¿prepago?)", f"{(w['extra_kind'] == 'prepaid_pending').sum()} pagos", "Prepago en confirmación: se reconoce el nivel anterior"),
+        ("Subidas de precio en el último mes", f"{(cm['uplift_conf'] == 'pending').sum()} clientes", "En confirmación: falta el mes siguiente"),
         ("Picos y pagos agrupados", f"{w['extra_kind'].isin(['spike', 'lump']).sum()} pagos", "Nivel recurrente local; el exceso se aísla"),
         ("Bajadas exactas a la mitad", f"{w['half_cut'].sum()} eventos", "Contracción marcada como ambigua (¿descuento?)"),
         ("Mora abierta al cierre (sin confirmar)", f"{(cm.loc[cm['month'] == cm['month'].max(), 'status'] == 'delinquent_open').sum()} clientes", "Sigue activa y marcada; sensibilidad = churn"),

@@ -90,6 +90,7 @@ def _css(t: Theme) -> str:
 .stApp {{ background-color:var(--bg);
   background-image:radial-gradient(var(--grid-dot) 1.5px, transparent 1.6px); background-size:24px 24px; }}
 [data-testid="stHeader"] {{ background:transparent; }}
+#MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {{ display:none !important; }}
 [data-testid="stSidebar"] > div:first-child {{ background:{t.sidebar}; border-right:1px solid var(--line); }}
 .block-container {{ padding-top:2.5rem; max-width:1280px; }}
 p, li {{ font-size:15px; line-height:24px; }}
@@ -130,6 +131,7 @@ h1, h2, h3, .da-h3 {{ text-wrap:balance; }}
 .da-callout p, .da-callout ul {{ margin:4px 0 0; max-width:78ch; }}
 .da-callout ul {{ padding-left:20px; }}
 .da-callout li {{ margin:2px 0; }}
+.da-callout p {{ break-inside:avoid; }}
 .da-callout-info {{ background:var(--surface-raised); }}
 .da-callout-warn {{ background:var(--warning-soft); }}
 .da-callout-warn .da-overline {{ color:var(--warning); }}
@@ -232,11 +234,13 @@ def kpi_row(items: list[dict], compact: bool = False) -> None:
     st.markdown(f'<div class="{grid}">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
-def callout(text_md: str, kind: str = "info") -> None:
-    """Aviso. Info: superficie neutra, la frase en negrita hace de etiqueta. Warn: estado = color + palabra."""
+def callout(text_md: str, kind: str = "info", cols: int = 1) -> None:
+    """Aviso. Info: superficie neutra, la frase en negrita hace de etiqueta. Warn: estado = color + palabra.
+    `cols` > 1 reparte los párrafos en columnas (franja ancha y baja, como en una herramienta BI)."""
     label = '<div class="da-overline">Atención</div>' if kind == "warn" else ""
     body = text_md if text_md.lstrip().startswith(("<ul", "<p")) else f"<p>{text_md}</p>"
-    st.markdown(f'<div class="da-callout da-callout-{kind}">{label}{body}</div>', unsafe_allow_html=True)
+    style = f' style="column-count:{cols};column-gap:40px"' if cols > 1 else ""
+    st.markdown(f'<div class="da-callout da-callout-{kind}"{style}>{label}{body}</div>', unsafe_allow_html=True)
 
 
 def tags(groups: list[tuple[str, list[str]]]) -> None:
@@ -330,12 +334,17 @@ def chart_frame(key: str, overline: str, title: str, subtitle: str, fig: go.Figu
             st.markdown(f'<div class="da-source">{html.escape(source)}</div>', unsafe_allow_html=True)
 
 
-def text_frame(key: str, overline: str, title: str, subtitle: str, df: pd.DataFrame, source: str | None = None) -> None:
-    """Tabla de frases (reglas, pasos, hipótesis): HTML que envuelve el texto; para cifras, usar table_frame."""
-    head = "".join(f"<th>{html.escape(str(c))}</th>" for c in df.columns)
-    rows = "".join("<tr>" + "".join(f"<td>{html.escape(str(v))}</td>" for v in r) + "</tr>"
+def text_frame(key: str, overline: str, title: str, subtitle: str, df: pd.DataFrame, source: str | None = None,
+               right: tuple[str, ...] = (), note: str | None = None) -> None:
+    """Tabla de frases (reglas, pasos, hipótesis) o de cifras con texto (p. ej., «en confirmación»): HTML que envuelve
+    el texto. `right` = columnas numéricas alineadas a la derecha; `note` = pie de tabla."""
+    cols = list(df.columns)
+    al = [' style="text-align:right"' if c in right else "" for c in cols]
+    head = "".join(f"<th{a}>{html.escape(str(c))}</th>" for c, a in zip(cols, al))
+    rows = "".join("<tr>" + "".join(f"<td{a}>{html.escape(str(v))}</td>" for v, a in zip(r, al)) + "</tr>"
                    for r in df.itertuples(index=False))
-    src = f'<div class="da-source">{html.escape(source)}</div>' if source else ""
+    src = (f'<div class="da-sub" style="margin-top:8px">{note}</div>' if note else "") + (
+        f'<div class="da-source">{html.escape(source)}</div>' if source else "")
     with st.container(border=True, key=f"frame_{key}"):
         st.markdown(_head(overline, title, subtitle) +
                     f'<table class="da-table"><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table>{src}',

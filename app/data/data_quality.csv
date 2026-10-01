@@ -1,11 +1,13 @@
 hallazgo,magnitud,tratamiento
 Malla cliente × mes completa (0 = no pagó),1961 clientes × 34 meses,Se usa como malla de fechas
-Meses en mora tolerada (vuelve a pagar),485 meses-cliente,Cliente activo; MRR = monto recurrente
-…de los cuales se pagaron después,260 meses-cliente,"La puesta al día es cobro de mora, no MRR"
-Pagos de puesta al día (k × monto),291 pagos,El exceso sale del MRR
+Meses en mora tolerada (vuelve a pagar),478 meses-cliente,Cliente activo; MRR = monto recurrente
+…de los cuales se pagaron después,253 meses-cliente,"La puesta al día es cobro de mora, no MRR"
+Pagos de puesta al día (k × monto),288 pagos,El exceso sale del MRR
 Retroactivo en subidas de precio,245 pagos,Subida = pricing; retroactivo = cargo único
 "Prepagos multi-mes (p. ej., anual)",16 pagos,"Se reparten en min(12, meses cubiertos)"
-Picos y pagos agrupados,133 pagos,Nivel recurrente local; el exceso se aísla
+Pago grande al final de la serie (¿prepago?),9 pagos,Prepago en confirmación: se reconoce el nivel anterior
+Subidas de precio en el último mes,94 clientes,En confirmación: falta el mes siguiente
+Picos y pagos agrupados,130 pagos,Nivel recurrente local; el exceso se aísla
 Bajadas exactas a la mitad,85 eventos,Contracción marcada como ambigua (¿descuento?)
 Mora abierta al cierre (sin confirmar),46 clientes,Sigue activa y marcada; sensibilidad = churn
 Clientes activos al inicio (ene-2022),377 clientes,Base de apertura; ventana desde abr-2022

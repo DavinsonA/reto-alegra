@@ -1,0 +1,28 @@
+# Mantiene despiertas las 3 apps de Streamlit Community Cloud durante la evaluación del reto.
+# Streamlit duerme las apps sin tráfico durante 12 horas; este workflow las abre con un navegador cada 6 horas.
+# Después de la evaluación se puede borrar este archivo.
+name: Mantener apps despiertas
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"      # cada 6 horas (minuto 17 para no caer en la hora pico de GitHub)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  visitar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar Playwright
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Abrir las apps
+        run: python tools/keep_awake.py

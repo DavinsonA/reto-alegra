@@ -24,10 +24,10 @@ Finora ve números, pero no los entiende lo suficiente para decidir. En los dos 
 - **CFO:**
   - El modelo actual (cliente + mes + monto pagado) usa la **caja como si fuera MRR**.
   - Lee la mora, las puestas al día, los prepagos y los retroactivos de precio como churn, reactivación y expansión.
-  - Así exagera el churn 4,1 veces (entre 2,6 y 4,6 según la regla) y la reactivación 14,4 veces.
+  - Así exagera el churn {{x_churn}} veces (entre {{sens_xchurn_min}} y {{sens_xchurn_max}} según la regla) y la reactivación {{x_reactivation}} veces.
   - Propuesta: **MRR en dos capas** (lista − descuento = neto), con el descuento como entidad con vigencia. **El fin de un descuento no es expansión.**
 - **CRO:**
-  - Con datos reales, Finora gana el doble de clientes por mes (+106 %), pero **más pequeños**: el MRR nuevo crece +51 %. El 97 % de la caída del ticket ocurre dentro de cada industria.
+  - Con datos reales, Finora gana el doble de clientes por mes (+{{crec_nuevos}} %), pero **más pequeños**: el MRR nuevo crece +{{crec_mrr_nuevo}} %. El {{kit_dentro}} % de la caída del ticket ocurre dentro de cada industria.
   - Sin datos del funnel, se entrega el **diseño** (tres caminos, conversión por cohorte, mezcla vs. tasa, speed-to-lead, control estadístico) y un **prototipo sintético** que demuestra que el tablero detecta problemas plantados.
 
 ## Estructura
@@ -43,7 +43,7 @@ finora/            motor de análisis
   funnel_synth.py    generador SINTÉTICO del funnel con problemas plantados
   xmr.py             gráfico de comportamiento del proceso (señal vs. ruido, Wheeler)
 sql/               mismo análisis en SQL (DuckDB/Postgres) + DDL del modelo de dos capas
-tests/             59 pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
+tests/             {{n_pruebas}} pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
 app/               las tres apps en Streamlit (leen solo app/data/, agregados)
   historia.py        historia ejecutiva (video 1)
   demo.py            proceso con IA y análisis completo (video 2)
@@ -66,7 +66,7 @@ source .venv/bin/activate          # Linux/Mac
 # .venv\Scripts\activate           # Windows
 pip install -r requirements.txt
 python pipeline.py                 # regenera app/data/ y los documentos con sus cifras
-pytest -q                          # 59 pruebas
+pytest -q                          # {{n_pruebas}} pruebas
 streamlit run app/historia.py      # o app/demo.py, o app/tablero.py
 ```
 
@@ -84,7 +84,7 @@ streamlit run app/historia.py      # o app/demo.py, o app/tablero.py
 | Bajadas exactas a la mitad: contracción **marcada como ambigua** | Con caja no se puede distinguir un descuento de un downgrade: por eso se propone el modelo de dos capas |
 | Ventana desde abr-2022 | Censura a la izquierda (los clientes de ene-2022 ya existían) |
 
-**Sensibilidad:** cada regla se apaga una a la vez en `app/data/rule_sensitivity.csv` (10 variantes). Ninguna cambia el signo ni el orden de magnitud: el churn corregido va de −15,7 a −27,6 MM, contra −72,9 MM del modelo actual.
+**Sensibilidad:** cada regla se apaga una a la vez en `app/data/rule_sensitivity.csv` ({{sens_n}} variantes). Ninguna cambia el signo ni el orden de magnitud: el churn corregido va de {{sens_churn_min}} a {{sens_churn_max}} MM, contra {{act_churn}} MM del modelo actual.
 
 ## Privacidad de datos
 

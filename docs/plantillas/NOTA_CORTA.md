@@ -28,9 +28,9 @@ la empresa (cobro, precios, descuentos, canales), y separar las dos cosas cambia
   - Un pago de 200 mil COP o más seguido de 6 o más meses en cero es un prepago, y se reparte en hasta 12 meses.
 - **Subida de precio:** se reconoce por el cobro retroactivo (confianza alta) o por un alza persistente de 2 % a 10 % (confianza media). El retroactivo es un cargo único.
 - **Lo que pasa en el último mes no se puede confirmar, y se marca "en confirmación":**
-  - El churn de 46 clientes en mora abierta.
-  - 94 subidas de precio (0,4 MM), porque falta el mes siguiente para ver si persisten.
-  - 9 pagos grandes que pueden ser prepagos.
+  - El churn de {{mora_abierta_clientes}} clientes en mora abierta.
+  - {{precio_pend_n}} subidas de precio ({{precio_pend}} MM), porque falta el mes siguiente para ver si persisten.
+  - {{caja_prepaid_pending_n}} pagos grandes que pueden ser prepagos.
 - **Inicio de la serie:** enero a marzo de 2022 es base de apertura, porque esos clientes ya existían.
 - **Funnel:** los datos del prototipo son sintéticos y solo prueban el diseño.
 
@@ -46,7 +46,7 @@ la empresa (cobro, precios, descuentos, canales), y separar las dos cosas cambia
   - Motivos de descalificación y de pérdida.
   - Eventos de producto y enlace entre lead y cliente.
   - Gasto por canal y capacidad de SDR y AE.
-- **Validar con Finanzas las unidades del S&M:** con las del enunciado, el S&M mensual equivale a unas 2,1 veces el MRR. Antes de cualquier decisión de inversión hay que confirmarlas.
+- **Validar con Finanzas las unidades del S&M:** con las del enunciado, el S&M mensual equivale a unas {{sm_vs_mrr}} veces el MRR. Antes de cualquier decisión de inversión hay que confirmarlas.
 
 ## 4. Qué cambiaría del modelo actual
 
@@ -65,27 +65,27 @@ la empresa (cobro, precios, descuentos, canales), y separar las dos cosas cambia
   - **Claude Code** para perfilar los datos y escribir el motor de MRR, el SQL y las apps.
   - Yo definí las preguntas, las reglas y las decisiones, y revisé cada resultado.
 - **Qué validé:**
-  - 59 pruebas automáticas: los casos del CFO, la conciliación del puente mes a mes y cada vista de las 3 apps.
+  - {{n_pruebas}} pruebas automáticas: los casos del CFO, la conciliación del puente mes a mes y cada vista de las 3 apps.
   - **El mismo cálculo en SQL y en Python, con el mismo resultado.**
-  - **Sensibilidad por regla, una a la vez (10 variantes): ninguna cambia el signo ni el orden de magnitud.** El churn corregido va de −15,7 a −27,6 MM, contra −72,9 MM en el modelo actual.
+  - **Sensibilidad por regla, una a la vez ({{sens_n}} variantes): ninguna cambia el signo ni el orden de magnitud.** El churn corregido va de {{sens_churn_min}} a {{sens_churn_max}} MM, contra {{act_churn}} MM en el modelo actual.
   - Revisión manual de las series de 11 clientes y revisión visual de cada vista.
   - Cada cifra de este documento sale de una sola tabla (`app/data/key_figures.csv`), y una prueba falla si un documento no coincide.
 - **Errores que detecté y corregí:**
   - Una regla que leía un upgrade real como pago agrupado.
-  - Prepagos anuales contados como "nuevo + churn": al corregirlo, el churn pasó de −27,6 a −18,0 MM.
-  - Pagos grandes al final de la serie leídos como MRR. Al tratarlos como prepagos en confirmación, el MRR de oct-2024 pasó de 97,6 a 95,7 MM.
+  - Prepagos anuales contados como "nuevo + churn": al corregirlo, el churn pasó de {{churn_sin_prepagos}} a {{cor_churn}} MM.
+  - Pagos grandes al final de la serie leídos como MRR. Al tratarlos como prepagos en confirmación, el MRR de oct-2024 pasó de 97,6 a {{mrr_fin}} MM.
   - Subidas de precio del último mes dadas por confirmadas sin el mes siguiente.
   - Churn en cero en meses que todavía no se pueden confirmar.
   - Cifras distintas entre documentos y una ventana distinta para el NRR de 2022.
   - Una paleta de colores que fallaba la prueba de daltonismo.
 - **Datos:** las apps públicas usan solo tablas agregadas, sin detalle por cliente.
 
-**Resultado principal (abr-2022 a oct-2024):**
-- El cambio neto del MRR es parecido en ambos modelos (corregido: +53,1 MM).
-- El modelo actual exagera el churn 4,1 veces y la reactivación 14,4 veces. Entre las variantes de las reglas, el churn va de 2,6 a 4,6 veces.
+**Resultado principal (abr-2022 a {{mes_corte}}):**
+- El cambio neto del MRR es parecido en ambos modelos (corregido: {{cambio_neto}} MM).
+- El modelo actual exagera el churn {{x_churn}} veces y la reactivación {{x_reactivation}} veces. Entre las variantes de las reglas, el churn va de {{sens_xchurn_min}} a {{sens_xchurn_max}} veces.
 - **Respuesta al CFO:**
-  - Comportamiento del cliente: +51,5 MM.
-  - Subidas de precio: +1,7 MM (0,4 MM aún en confirmación).
-  - Descuentos: no se pueden medir con caja. Hay 85 bajadas exactas al 50 % que pueden ser descuentos o downgrades. Su **cota superior ilustrativa**, 40,8 MM, no es una estimación: es el argumento para medir en dos capas.
-- La retención a 12 meses de las altas de 2023 es 91 %, no 82 %.
-- Los clientes nuevos por mes se duplicaron (+106 %), pero entran más pequeños. El ticket de entrada cayó entre 25 % y 29 % según la medida, y el 97 % de esa caída ocurre dentro de cada industria.
+  - Comportamiento del cliente: {{cliente}} MM.
+  - Subidas de precio: {{cor_price}} MM ({{precio_pend}} MM aún en confirmación).
+  - Descuentos: no se pueden medir con caja. Hay {{half_n}} bajadas exactas al 50 % que pueden ser descuentos o downgrades. Su **cota superior ilustrativa**, {{half_techo}} MM, no es una estimación: es el argumento para medir en dos capas.
+- La retención a 12 meses de las altas de 2023 es {{nrr_cor_2023}} %, no {{nrr_act_2023}} %.
+- Los clientes nuevos por mes se duplicaron (+{{crec_nuevos}} %), pero entran más pequeños. El ticket de entrada cayó entre {{caida_min}} % y {{caida_max}} % según la medida, y el {{kit_dentro}} % de esa caída ocurre dentro de cada industria.

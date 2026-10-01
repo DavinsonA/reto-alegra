@@ -100,6 +100,34 @@ def test_ceros_largos_al_final_son_churn():
     assert mv[2] == "churn"
 
 
+def test_subida_en_el_ultimo_mes_queda_en_confirmacion():
+    # sin mes siguiente no se puede comprobar que el alza persista: se marca, igual que el churn final
+    inf, mv, _ = run([10, 10, 10, 10.85])
+    assert mv[3] == "price_uplift" and inf["uplift"][3] == "pending"
+    inf2, _, _ = run([10, 10, 10.85, 10.85])
+    assert inf2["uplift"][2] == "medium"         # con un mes más, se confirma
+
+
+def test_pago_grande_al_final_es_prepago_en_confirmacion():
+    r = Rules(prepay_min_amount=20)
+    # patrón real (anonimizado): paga grande cada ~12 meses; tras 3 meses en 0 paga grande en el último mes
+    inf, mv, _ = run([5, 5, 5, 0, 0, 0, 40], r)
+    assert mv[6] == "reactivation" and inf["level"][6] == pytest.approx(5)
+    assert inf["extra_kind"][6] == "prepaid_pending" and inf["extra"][6] == pytest.approx(35)
+    # cliente nuevo que paga grande cerca del final: nivel = pago / 12 y los meses siguientes quedan cubiertos
+    inf2, mv2, _ = run([0, 96, 0, 0], r)
+    assert mv2[1] == "new" and inf2["level"][1] == pytest.approx(8)
+    assert list(inf2["status"][2:]) == ["prepaid", "prepaid"] and "churn" not in mv2
+
+
+def test_sin_puestas_al_dia_el_pago_doble_es_expansion_y_contraccion():
+    _, mv, _ = run([6.3, 6.3, 0, 12.6, 6.3], Rules(detect_catchup=False))
+    assert mv[3:5] == ["expansion", "contraction"]
+    # rel_tol = 0 no apaga la regla: los montos de los datos son múltiplos exactos
+    inf, _, _ = run([6.3, 6.3, 0, 12.6, 6.3], Rules(rel_tol=0))
+    assert inf["extra_kind"][3] == "arrears"
+
+
 @pytest.fixture(scope="module")
 def cm():
     return build_customer_month(load_transactions())

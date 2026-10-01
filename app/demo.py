@@ -25,7 +25,7 @@ from finora.funnel_synth import CHANNELS  # noqa: E402
 from finora.two_layer import two_layer_movements  # noqa: E402
 
 S_IA = "Proceso · cómo trabajé con IA"
-S_CFO = ""
+S_CFO = "Caso CFO · ¿por qué cambió el MRR?"
 S_CRO = "Caso CRO · el funnel"
 S_DM = "Fundamentos · modelo de datos propuesto"
 S_SM = "Fundamentos · S&M y eficiencia"
@@ -42,14 +42,27 @@ ny = C.new_by_year()
 # =====================================================================================
 if section == S_IA:
     st.title("Cómo trabajé con IA: la IA propone y escribe; yo defino las reglas y verifico")
-    B.tags([("mint", ["Python", "SQL", "DuckDB", "pandas"]), ("lavender", ["Claude Code", "LLM con búsqueda web"]),
+    B.tags([("mint", ["Python", "SQL", "DuckDB", "pandas"]), ("lavender", ["Claude Code", "Claude con búsqueda web"]),
             ("peach", ["Plotly", "Streamlit"]), ("", ["pytest", "Playwright", "Git"])])
     ERRORS = pd.DataFrame([
         ("El motor leía un upgrade real (el cliente duplica su plan y se queda) como un pago agrupado",
          "Revisión de la regla contra series reales", "Condición «el monto alto no se mantiene» y una prueba nueva"),
         ("Prepagos anuales contados como «nuevo + churn»",
          "Prueba de robustez: el MRR al 3.er mes no cuadraba con el del 1.er mes",
-         "Regla de prepago y 2 pruebas · el churn corregido pasó de −27,6 a −17,9 MM"),
+         f"Regla de prepago y 2 pruebas · el churn corregido pasó de {C.FIGURES['churn_sin_prepagos']} a "
+         f"{C.FIGURES['cor_churn']} MM"),
+        (f"{C.FIGURES['caja_prepaid_pending_n']} pagos grandes al final de la serie leídos como MRR; uno aparecía como una "
+         "reactivación de 1,1 MM de un cliente que paga cada 12 a 14 meses",
+         "Revisión del tablero: reactivación de oct-2024 diez veces mayor que el ticket promedio",
+         f"Prepago en confirmación (censura a la derecha) y una prueba · el MRR de oct-2024 pasó de 97,6 a "
+         f"{C.FIGURES['mrr_fin']} MM"),
+        (f"{C.FIGURES['precio_pend_n']} subidas de precio del último mes dadas por confirmadas sin mes siguiente",
+         "Lectura del código: la persistencia se suponía cuando no había mes siguiente",
+         "Quedan «en confirmación», igual que el churn final, con una prueba"),
+        ("La sensibilidad que apagaba las puestas al día con tolerancia 0 no las apagaba",
+         "Prueba: los montos de los datos son múltiplos exactos", "Interruptor explícito de la regla y una prueba"),
+        ("Un reemplazo automático dejó sin nombre una sección de esta demo",
+         "Revisión visual de la barra lateral", "Se restauró y una prueba falla si una sección queda sin nombre"),
         ("Churn en 0 «dentro de lo normal» en los 2 últimos meses, que aún no se pueden confirmar",
          "Revisión visual del tablero mensual", "Se muestran «en confirmación», con el MRR en mora y su acción"),
         ("Dos cifras distintas para las bajadas a la mitad (87 y 40,9 MM frente a 85 y 39,1 MM)",
@@ -72,7 +85,8 @@ if section == S_IA:
     B.text_frame("ia_steps", "", "Siete pasos: en cada uno, qué hizo la IA y qué hice yo",
                   "La IA acelera la exploración y el código; las reglas de negocio y la verificación son mías",
                   pd.DataFrame([
-                      ("1 · Entender y priorizar", "Resumió el enunciado e investigó buenas prácticas con fuentes "
+                      ("1 · Entender y priorizar", "Claude con búsqueda web resumió el enunciado e investigó buenas "
+                       "prácticas con fuentes "
                        "(MRR con descuentos, funnel híbrido, speed-to-lead)", "Prioricé al CFO: sin un MRR confiable, "
                        "el análisis del funnel hereda el error", "Fuentes enlazadas y contrastadas; descarté una cifra "
                        "sin fuente rastreable"),
@@ -148,6 +162,7 @@ elif section == S_CFO:
     with c1:
         nm = C.nonmrr_cash()
         kinds = {"arrears": "Mora y puestas al día", "lump": "Pagos agrupados", "spike": "Picos puntuales",
+                 "prepaid_pending": "Prepago en confirmación",
                  "prepaid": "Prepagos multi-mes", "retro": "Retroactivo de precio"}
         f2 = go.Figure(go.Bar(y=[kinds.get(k, k) for k in nm.index], x=nm.values / 1e6, orientation="h",
                               marker_color=T.viz[0], hovertemplate="%{y}: %{x:.1f} MM<extra></extra>"))
@@ -195,14 +210,15 @@ elif section == S_CFO:
              foot="nuevos + expansión + reactivación − contracción − churn"),
         dict(overline="Pricing · subidas de precio", value=B.mm(tcs.get("price_uplift", 0), sign=True),
              foot=f"{B.es(tcs.get('price_uplift', 0) / tcs.sum() * 100, 0)} % del cambio neto"),
-        dict(overline="Descuentos", value="Sin dato", delta=f"0 a {B.mm(hc['foregone_cop'].sum())}",
-             foot="rango de revenue no capturado"),
+        dict(overline="Descuentos", value="Sin dato", delta=f"cota ilustrativa {B.mm(hc['foregone_cop'].sum())}",
+             foot=f"techo si las {int(hc['events'].sum())} bajadas al 50 % fueran descuentos; no es una estimación"),
         dict(overline="MRR en mora sin confirmar", value=B.mm(at_risk), foot="al cierre de oct-2024"),
     ])
     B.callout(f"Hay <b>{int(hc['events'].sum())} bajadas exactas a la mitad</b>. Pueden ser un descuento (decisión "
               f"comercial) o un downgrade (comportamiento del cliente), y con <i>cliente + mes + monto</i> no hay forma "
-              f"de saberlo. Si fueran descuentos, Finora habría dejado de capturar hasta {B.mm(hc['foregone_cop'].sum())} "
-              "acumulados. Esa incertidumbre es el argumento para pasar al modelo de dos capas.")
+              f"de saberlo. Su <b>cota superior ilustrativa</b> es {B.mm(hc['foregone_cop'].sum())} acumulados: lo que "
+              "Finora habría dejado de capturar si todas fueran descuentos que se mantuvieron. No es una estimación; esa "
+              "incertidumbre es el argumento para pasar al modelo de dos capas.")
 
     rc = load("retention_cohorts")
     cc1, cc2 = st.columns(2)
@@ -225,16 +241,14 @@ elif section == S_CFO:
     B.chart_frame("heatmap", "",
                   f"Las altas de 2023 retienen {B.pct(nrr12(COR, '2023'))} de su MRR a 12 meses, no {B.pct(nrr12(ACT, '2023'))}",
                   f"{ {'nrr': 'NRR', 'grr': 'GRR', 'logo_retention': 'Retención de clientes'}[metric] } por cohorte trimestral "
-                  f"de alta y meses de antigüedad · {model_r} · neutro = 100 %, durazno = pierde, azul = crece", f5, hp.round(1).reset_index(), SRC_TX, 420)
+                  f"de alta y meses de antigüedad · {model_r} · neutro = 100 %, durazno = pierde, azul = crece", f5, hp.round(1).rename(columns=lambda c: f"Mes {c}").reset_index(), SRC_TX, 420)
 
-    rows = []
-    for s_ in [ACT, "Corregido (N=1)", COR, "Corregido (N=3)", "Corregido sin separar precio",
-               "Corregido, mora final = churn"]:
-        t = bridge_totals(s_)
-        rows.append({"Escenario": s_, **{MOVE_LABELS[m]: round(t.get(m, 0) / 1e6, 1) for m in MOVES}})
-    B.table_frame("sens", "", "La conclusión no depende de la regla de mora",
-                  "Movimientos acumulados en millones de COP según cada regla · con N = 1, 2 o 3 el churn corregido se "
-                  "mueve poco y queda lejos del modelo actual", pd.DataFrame(rows), SRC_TX)
+    sens, stable = C.rule_sensitivity()
+    B.text_frame("sens", "", ("Ninguna regla cambia el signo ni el orden de magnitud" if stable else
+                               "Alguna regla cambia el signo o el orden de magnitud: revisar"),
+                  "Cada regla del modelo corregido apagada o llevada a su extremo, una a la vez · movimientos acumulados "
+                  "abr-2022 a oct-2024 en millones de COP · detalle y archivo en Fundamentos · calidad de datos",
+                  sens.drop(columns=["Ajuste"]), "Fuente: app/data/rule_sensitivity.csv", right=C.SENS_NUM)
 
     st.subheader("Simulador · las 3 preguntas del CFO")
     cases = {
@@ -306,11 +320,14 @@ elif section == S_CRO:
                       SRC_TX, 360, right=120)
         kt = C.ticket_kitagawa()
         mix, rate, r0, r1 = kt["mix"], kt["rate"], kt["ticket0"], kt["ticket1"]
+        order = rate.sort_values(ascending=False).index      # barras horizontales: los nombres largos no se pisan
         f2 = go.Figure()
-        f2.add_bar(x=rate.index, y=rate.values, name="Dentro de la industria (cambia su ticket)", marker_color=T.viz[0],
-                   hovertemplate="%{x}<br>Dentro de la industria: %{y:,.0f} COP<extra></extra>")
-        f2.add_bar(x=mix.index, y=mix.values, name="Mezcla (cambia el peso de la industria)", marker_color=T.viz[1],
-                   hovertemplate="%{x}<br>Mezcla: %{y:,.0f} COP<extra></extra>")
+        f2.add_bar(y=order, x=rate[order].values, orientation="h", name="Dentro de la industria (cambia su ticket)",
+                   marker_color=T.viz[0], hovertemplate="%{y}<br>Dentro de la industria: %{x:,.0f} COP<extra></extra>")
+        f2.add_bar(y=order, x=mix[order].values, orientation="h", name="Mezcla (cambia el peso de la industria)",
+                   marker_color=T.viz[1], hovertemplate="%{y}<br>Mezcla: %{x:,.0f} COP<extra></extra>")
+        f2.update_yaxes(showgrid=False)
+        f2.update_xaxes(showgrid=True, gridcolor=T.line, ticksuffix=" COP")
         share_in = rate.sum() / (mix.sum() + rate.sum())
         B.chart_frame("kit_ind", "Datos reales",
                       f"El {B.es(share_in * 100, 0)} % de la caída del ticket ocurre dentro de cada industria; Retail cae más",
@@ -318,7 +335,7 @@ elif section == S_CRO:
                       f"{B.es(mix.sum() + rate.sum(), 0)}",
                       f2, pd.DataFrame({"Industria": mix.index, "Ticket 2022": r0.round(0).values, "Ticket 2024": r1.round(0).values,
                                         "Efecto mezcla": mix.round(0).values, "Efecto dentro": rate.round(0).values}),
-                      SRC_TX, 360, ysuffix=" COP")
+                      SRC_TX, 360)
         B.callout("Lo que <b>no</b> se puede concluir con estos datos: si la caída se debe al canal (más self-serve), al "
                   "plan o tamaño del cliente, o a descuentos de entrada. Hace falta el funnel por eventos.")
     with tab_design:
@@ -377,7 +394,14 @@ elif section == S_CRO:
             f.add_bar(x=v.index.astype(str), y=v[ch], name=ch, marker_color=CHANNEL_COLORS[ch],
                       hovertemplate="%{x}<br>" + ch + ": %{y}<extra></extra>")
         f.update_layout(barmode="stack")
-        B.chart_frame("syn_vol", "Datos sintéticos", "New crece 40 % desde marzo, casi todo por Paid Social",
+        tot_m = v.sum(axis=1)                               # cifras calculadas, no escritas a mano
+        pre = (v.index < pd.Period("2024-03", "M")) & (v.index >= pd.Period("2023-07", "M"))
+        post_ = v.index >= pd.Period("2024-03", "M")
+        vol_up = tot_m[post_].mean() / tot_m[pre].mean() - 1
+        ps_share = (v.loc[post_, "Paid Social"].mean() - v.loc[pre, "Paid Social"].mean()) / (
+            tot_m[post_].mean() - tot_m[pre].mean())
+        B.chart_frame("syn_vol", "Datos sintéticos",
+                      f"New crece {B.es(vol_up * 100, 0)} % desde marzo; Paid Social explica el {B.es(ps_share * 100, 0)} %",
                       "Leads nuevos por mes y canal", f, v.reset_index(names="Mes").astype({"Mes": str}), SRC_SYN, 360)
         sdr = r[r["path"] == "sdr_full"]
         kt = F.kitagawa(sdr, "New", "SQL", 45, pd.period_range("2023-07", "2023-12", freq="M"),
@@ -394,14 +418,17 @@ elif section == S_CRO:
                           (kt * 100).round(2).reset_index(names="Canal"), SRC_SYN, 340, ysuffix=" pp")
         with c2:
             s2l = F.speed_to_lead(r)
+            p50_0 = s2l.loc[s2l["cohort"] < pd.Period("2024-03", "M"), "p50"].mean()
+            p50_1 = s2l["p50"].tail(3).mean()
             f3 = go.Figure()
             for col, name, color in (("p50", "P50", T.viz[0]), ("p90", "P90", T.viz[1])):
                 f3.add_scatter(x=s2l["cohort"].astype(str), y=s2l[col], name=name, mode="lines", line=dict(color=color),
                                hovertemplate="%{x}<br>" + name + ": %{y:.1f} h<extra></extra>")
             f3.update_layout(hovermode="x unified")
             B.end_labels(f3)
-            B.chart_frame("syn_s2l", "Datos sintéticos", "El primer contacto pasó de 2 a 8 horas cuando subió el volumen",
-                          "Speed-to-lead mensual · horas", f3, s2l.round(2).astype({"cohort": str}), SRC_SYN, 340,
+            B.chart_frame("syn_s2l", "Datos sintéticos",
+                          f"El primer contacto pasó de {B.es(p50_0, 1)} a {B.es(p50_1, 1)} horas cuando subió el volumen",
+                          "Speed-to-lead mensual · horas", f3, s2l.astype({"cohort": str}).round(2), SRC_SYN, 340,
                           ysuffix=" h", right=60)
         c3, c4 = st.columns(2, gap="medium")
         with c3:
@@ -448,16 +475,17 @@ elif section == S_CRO:
                       "Conversión SQL a Won en 60 días por cohorte madura · %", f6,
                       post.assign(conv=lambda d: (d["conv"] * 100).round(1)).astype({"cohort": str}), SRC_SYN, 280, ysuffix=" %")
         st.subheader("Lectura para el CRO (lo que el tablero diría con datos reales)")
-        st.markdown("- **Qué cambió:** New creció cerca de 40 % desde marzo, casi todo en Paid Social.\n"
+        st.markdown(f"- **Qué cambió:** New creció {B.es(vol_up * 100, 0)} % desde marzo, sobre todo por Paid Social.\n"
                     "- **Dónde se concentra:** New a SQL cae en parte por **mezcla** (más Paid Social, que convierte menos) "
                     "y en parte por **tasa** (todos los canales convierten menos).\n"
-                    "- **Por qué:** el primer contacto pasó de unas 2 a 8 horas y la conversión cae con la demora **dentro "
+                    f"- **Por qué:** el primer contacto pasó de {B.es(p50_0, 1)} a {B.es(p50_1, 1)} horas y la conversión "
+                    "cae con la demora **dentro "
                     "del mismo canal**: es **capacidad SDR**. Post-SQL está estable: no es problema del AE.\n"
                     "- **Qué hacer:** ruteo y primer contacto automático, con IA, para leads de bajo ajuste; SLA de 1 hora "
                     "para los de alto ajuste; medir Paid Social por SQL y MRR a 3 meses, no por leads; revisión semanal "
                     "con las alertas del control estadístico.")
         stl = F.stalled(r, ev, as_of)
-        st.caption(f"Lista operativa: {B.es(len(stl), 0)} leads abiertos superan el P90 de tiempo en su etapa y se "
+        st.caption(f"Lista operativa: {B.es(len(stl), 0)} leads abiertos superan el P90 histórico de su etapa y camino, y se "
                    "reparten por owner en la operación diaria.")
 
 # =====================================================================================
@@ -481,8 +509,9 @@ elif section == S_DM:
           plan -> sub [label="precio de lista"]; sub -> asg [label="recibe"]; disc -> asg;
           sub -> mrr [label="list_mrr"]; asg -> mrr [label="discount_mrr"]; inv -> mrr [label="concilia, no define", style=dashed];
         }}""")
-        st.markdown('<div class="da-source">DDL: sql/02_modelo_dos_capas_ddl.sql · clasificación: sql/03_movimientos_dos_capas.sql</div>',
-                    unsafe_allow_html=True)
+        st.markdown(f'<div class="da-source">DDL: <a href="{C.REPO}/sql/02_modelo_dos_capas_ddl.sql">'
+                    f'sql/02_modelo_dos_capas_ddl.sql</a> · clasificación: <a href="{C.REPO}/sql/03_movimientos_dos_capas.sql">'
+                    'sql/03_movimientos_dos_capas.sql</a></div>', unsafe_allow_html=True)
     B.text_frame("rules", "", "Inicio y fin de un descuento nunca se leen como contracción o expansión",
                   "Cómo se clasifica cada evento y en qué capa", pd.DataFrame([
                       ("Cliente nuevo", "Cliente", "new", "+ lista"),
@@ -550,21 +579,35 @@ elif section == S_SM:
 # =====================================================================================
 else:
     st.title("Calidad de datos, supuestos y lo que no se puede concluir")
-    B.text_frame("dq", "", "Doce hallazgos de calidad y cómo se trató cada uno",
-                  "Magnitud medida en los datos y regla aplicada", load("data_quality").rename(
+    dq = load("data_quality")
+    B.text_frame("dq", "", f"{len(dq)} hallazgos de calidad y cómo se trató cada uno",
+                  "Magnitud medida en los datos y regla aplicada", dq.rename(
                       columns={"hallazgo": "Hallazgo", "magnitud": "Magnitud", "tratamiento": "Tratamiento"}), SRC_TX)
     c1, c2 = st.columns(2, gap="medium")
     c1.subheader("Supuestos")
-    c1.markdown("- `Transactions` es caja cobrada en el mes, no MRR. Montos × 10.000 = COP.\n"
-                "- Mora tolerada de **N = 2 meses**, que cubre el 84 % de los huecos; robustez con N = 1 y 3.\n"
+    c1.markdown("- **Supuesto cero: un 0 en `Transactions` es «no se cobró», no «no se facturó».** Si significara «sin "
+                "servicio», el modelo de caja tendría razón y la mora no existiría.\n"
+                "- `Transactions` es caja cobrada en el mes, no MRR. Montos × 10.000 = COP.\n"
+                "- Mora tolerada de **N = 2 meses**; sensibilidad con N = 1 y 3 en la tabla de abajo.\n"
                 "- Un hueco pagado completo después significa que el cliente siguió activo.\n"
                 "- Subida de precio: patrón de retroactivo (confianza alta) o alza persistente de 2 % a 10 % (media).\n"
                 "- Prepago: pago de 200 mil COP o más seguido de 6 o más meses en 0, repartido en min(12, meses cubiertos).\n"
+                "- Lo que pasa en el último mes queda en confirmación: churn en mora, subidas de precio y pagos grandes "
+                "que pueden ser prepagos.\n"
                 "- Enero a marzo de 2022 es periodo de arranque (clientes que ya existían).")
     c2.subheader("Lo que no se puede concluir")
     c2.markdown("- Si una baja de monto es un descuento o un downgrade.\n"
                 "- Cualquier hipótesis del funnel real: no hay etapas, canal ni tiempos.\n"
                 "- Causalidad entre S&M y altas, eficiencia por canal y margen bruto.")
+    sens, stable = C.rule_sensitivity()
+    B.text_frame("sens_dq", "", ("Sensibilidad por regla: ninguna cambia el signo ni el orden de magnitud" if stable else
+                                  "Sensibilidad por regla: alguna cambia el signo o el orden de magnitud"),
+                  "Cada regla apagada o llevada a su extremo, una a la vez · movimientos acumulados abr-2022 a oct-2024 en "
+                  "millones de COP y NRR a 12 meses de las altas de 2023", sens,
+                  "Fuente: app/data/rule_sensitivity.csv (generado por pipeline.py) · reglas en finora/mrr.py",
+                  right=C.SENS_NUM)
+    st.markdown(f"Archivo completo: [rule_sensitivity.csv]({C.REPO}/app/data/rule_sensitivity.csv) · reglas: "
+                f"[finora/mrr.py]({C.REPO}/finora/mrr.py)")
     st.subheader("Información que hizo falta")
     st.markdown("- **CFO:** precio de lista y plan por cliente-mes; tabla de descuentos con inicio, fin, motivo y "
                 "aprobador; intervalo de facturación; estado de la suscripción y fecha de cancelación; facturas con "

@@ -34,6 +34,7 @@ class Rules:
     detect_pricing: bool = True       # False = no separar subidas de precio (para medir el efecto de la regla)
     prepay_min_amount: float = 200_000  # prepago: pago >= este monto (misma unidad que la caja) seguido de...
     prepay_min_zeros: int = 6           # ...al menos estos meses en 0; se reparte en min(12, ceros + 1) meses
+    detect_catchup: bool = True         # False = no reconocer puestas al día ni pagos agrupados (sensibilidad)
 
 
 def _is_multiple(x: float, ref: float, tol: float) -> int:
@@ -52,7 +53,7 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
     level = np.zeros(T)
     extra = np.zeros(T)                       # caja que NO es MRR del mes (mora cobrada, retroactivo, pico)
     extra_kind = np.array([""] * T, dtype=object)
-    uplift = np.array([""] * T, dtype=object)  # '', 'high' (patrón retroactivo), 'medium' (alza persistente)
+    uplift = np.array([""] * T, dtype=object)  # '', 'high' (retroactivo), 'medium' (alza persistente), 'pending' (último mes)
     covered = np.zeros(T, dtype=bool)          # el pago de este mes cubre el hueco anterior (mora pagada)
     pos = cash > 0
     usage_like = len(np.unique(np.round(cash[pos], 3))) >= rules.usage_distinct_amounts
@@ -88,6 +89,19 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
             t += 1
             continue
 
+        # 0b) el mismo pago grande cerca del final de la serie: los meses en 0 que confirmarían el prepago
+        #     todavía no existen (censura a la derecha). Se reconoce el nivel anterior (o c/12 si es nuevo) y el
+        #     resto queda como caja en confirmación, igual que el churn de los últimos meses.
+        if (t + 1 + z == T and z < rules.prepay_min_zeros and c >= rules.prepay_min_amount
+                and (last_level == 0 or c >= 3 * last_level)):
+            lvl = last_level if last_level > 0 else c / 12
+            level[t + 1:] = lvl
+            prepaid[t + 1:] = True
+            level[t], extra[t], extra_kind[t] = lvl, c - lvl, "prepaid_pending"
+            last_level, seen_payment, zeros_before = lvl, True, 0
+            t += 1
+            continue
+
         # a) pago de puesta al día o pago agrupado: c ≈ k × nivel, y el monto alto NO se mantiene.
         #    Si el monto alto se mantiene el mes siguiente, es una expansión real, no un pago agrupado.
         high_persists = nxt > 0 and abs(nxt / c - 1) <= rules.rel_tol
@@ -97,7 +111,7 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
             candidates.append(nxt)                  # vuelve al nivel normal el mes siguiente
         if last_level > 0 and not high_persists and (zeros_before > 0 or abs(nxt / last_level - 1) <= rules.rel_tol):
             candidates.append(last_level)           # pago al nivel anterior (puesta al día o pago doble aislado)
-        for ref in candidates:
+        for ref in (candidates if rules.detect_catchup else []):
             k = _is_multiple(c, ref, rules.rel_tol)
             if k:
                 lvl, kind = ref, ("arrears" if (zeros_before > 0 or not seen_payment) else "lump")
@@ -172,8 +186,11 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
             if uplift[t] or level[t - 1] <= 0 or level[t] <= 0:
                 continue
             r = level[t] / level[t - 1] - 1
-            persistent = t == T - 1 or abs(level[t + 1] / level[t] - 1) < 0.005 if level[t] > 0 else False
-            if rules.uplift_min <= r < rules.uplift_max and persistent:
+            if not rules.uplift_min <= r < rules.uplift_max:
+                continue
+            if t == T - 1:
+                uplift[t] = "pending"                # sin mes siguiente: en confirmación, como el churn final
+            elif abs(level[t + 1] / level[t] - 1) < 0.005:
                 uplift[t] = "medium"
 
     return dict(level=level, extra=extra, extra_kind=extra_kind, uplift=uplift, status=status,

@@ -10,6 +10,7 @@ import pandas as pd
 import streamlit as st
 
 import brand as B
+from finora.figures import load_figures
 from finora.funnel_synth import generate
 
 DATA = Path(__file__).resolve().parent / "data"
@@ -22,9 +23,12 @@ MOVES = ["new", "expansion", "price_uplift", "reactivation", "contraction", "chu
 MOVE_LABELS = {"new": "Nuevos", "expansion": "Expansión (cliente)", "price_uplift": "Subida de precio (Finora)",
                "reactivation": "Reactivación", "contraction": "Contracción", "churn": "Churn"}
 CUSTOMER_MOVES = ["new", "expansion", "reactivation", "contraction", "churn"]
-N_TESTS = 48                     # pruebas automáticas del repositorio (pytest); actualizar si cambian
+
+FIGURES = load_figures(DATA / "key_figures.csv")   # cifras clave: la misma fuente que README, HALLAZGOS y NOTA_CORTA
+N_TESTS = FIGURES["n_pruebas"]                     # lo escribe pipeline.py contando las pruebas de pytest
 
 APPS = {"historia": "Historia ejecutiva", "demo": "Demo y proceso con IA", "tablero": "Tablero operativo"}
+REPO = "https://github.com/DavinsonA/reto-alegra/blob/main"
 # Enlaces públicos de cada app: se llenan al publicar en Streamlit Community Cloud
 LINKS = {"historia": "https://finora-historia.streamlit.app/", "demo": "https://finora-demo.streamlit.app/", "tablero": "https://finora-tablero.streamlit.app/"}
 
@@ -35,9 +39,15 @@ def load(name: str) -> pd.DataFrame:
     return pd.read_csv(DATA / f"{name}.csv")
 
 
+def fig_num(name: str) -> float:
+    """Valor numérico de una cifra clave (vienen formateadas en español: 44.348 · −18,0)."""
+    return float(FIGURES[name].replace(".", "").replace(",", ".").replace("−", "-"))
+
+
 @st.cache_data
 def synthetic():
-    return generate()
+    # el ticket de los ganados sintéticos se alinea con el ticket de entrada real de 2024
+    return generate(target_ticket=fig_num("ticket_2024"))
 
 
 def bridge_totals(scenario: str) -> pd.Series:
@@ -79,6 +89,31 @@ def ticket_kitagawa(y0: str = "2022", y1: str = "2024") -> pd.DataFrame:
     w0, w1, r0, r1 = share.loc[y0], share.loc[y1], g["ticket"].loc[y0], g["ticket"].loc[y1]
     return pd.DataFrame({"ticket0": r0, "ticket1": r1, "mix": (w1 - w0) * (r0 + r1) / 2,
                          "rate": (r1 - r0) * (w0 + w1) / 2})
+
+
+SENS_COLS = {"new_cop": "Nuevos", "expansion_cop": "Expansión", "price_uplift_cop": "Precio",
+             "reactivation_cop": "Reactivación", "contraction_cop": "Contracción", "churn_cop": "Churn"}
+
+
+def rule_sensitivity() -> tuple[pd.DataFrame, bool]:
+    """Sensibilidad una regla a la vez (MM COP y NRR %) y si alguna variante cambia el signo o el orden de magnitud."""
+    s = load("rule_sensitivity")
+    cor = s[s["escenario"] != "Modelo actual (caja)"]
+    base = cor.iloc[0]
+    stable = True
+    for c in SENS_COLS:
+        if c == "price_uplift_cop":                      # apagar la regla de precio lo lleva a 0 por definición
+            continue
+        ratio = cor[c] / base[c]
+        stable &= bool(((ratio > 0) & (ratio.abs().between(0.1, 10))).all())
+    view = s[["escenario", "ajuste", *SENS_COLS]].rename(columns={"escenario": "Escenario", "ajuste": "Ajuste", **SENS_COLS})
+    for c in SENS_COLS.values():
+        view[c] = (view[c] / 1e6).map(lambda v: B.es(v, 1))
+    view["NRR 12 m, altas 2023"] = (s["nrr12_2023"] * 100).map(lambda v: f"{B.es(v, 1)} %")
+    return view, stable
+
+
+SENS_NUM = (*SENS_COLS.values(), "NRR 12 m, altas 2023")
 
 
 def half_cut() -> pd.DataFrame:

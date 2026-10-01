@@ -130,18 +130,25 @@ def period_metrics(r: pd.DataFrame, as_of: pd.Timestamp, freq: str = "W") -> pd.
 
 
 def stalled(r: pd.DataFrame, events: pd.DataFrame, as_of: pd.Timestamp) -> pd.DataFrame:
-    """Leads abiertos cuyo tiempo en la etapa actual supera el P90 histórico de esa etapa."""
+    """Leads abiertos cuyo tiempo en la etapa actual supera el P90 histórico de su etapa y camino.
+
+    El P90 se mide sobre los leads que SÍ avanzaron (cuánto tardan en pasar a la etapa siguiente), así que un lead
+    abierto puede superarlo aunque, por definición, solo el 10 % de los que avanzan tarde más.
+    """
     last = events.sort_values("ts").groupby("lead_id").tail(1).set_index("lead_id")
     last = last[~last["stage"].isin(["Won", "Lost"])]          # solo leads abiertos
     last["days_in_stage"] = (as_of - last["ts"]).dt.total_seconds() / 86400
-    nxt = {s: STAGES[i + 1] for i, s in enumerate(STAGES[:-1])}
-    p90 = {}
-    for s, n in nxt.items():
-        dur = (r[n] - r[s]).dt.total_seconds() / 86400
-        p90[s] = dur.dropna().quantile(0.9) if dur.notna().any() else np.nan
-    last["p90_stage"] = last["stage"].map(p90)
-    out = last[(last["days_in_stage"] > last["p90_stage"]) & (last["days_in_stage"] <= 120)]
-    out = out.join(r[["channel", "path", "company_size"]]).reset_index()
+    last = last.join(r[["channel", "path", "company_size"]])
+    rows = []
+    for path, g in r.groupby("path"):
+        for i, s in enumerate(STAGES[:-1]):
+            nxt = r.loc[g.index, STAGES[i + 1:]].min(axis=1)    # llegada a la siguiente etapa que viva (con saltos)
+            dur = ((nxt - g[s]).dt.total_seconds() / 86400).dropna()
+            if len(dur) >= 30:
+                rows.append((path, s, dur.quantile(0.9)))
+    p90 = pd.DataFrame(rows, columns=["path", "stage", "p90_stage"])
+    last = last.reset_index().merge(p90, on=["path", "stage"], how="left").set_index("lead_id")
+    out = last[(last["days_in_stage"] > last["p90_stage"]) & (last["days_in_stage"] <= 120)].reset_index()
     # dueño sintético determinístico: SDR en etapas tempranas, AE desde SQL
     ae = out["stage"].isin(["SQL", "Demo", "Proposal"])
     out["owner"] = np.where(ae, "AE " + (out["lead_id"] % 4 + 1).astype(str), "SDR " + (out["lead_id"] % 8 + 1).astype(str))
