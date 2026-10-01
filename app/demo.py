@@ -102,7 +102,7 @@ if section == S_IA:
                        "Sensibilidad: con N = 1, 2 y 3 la conclusión no cambia"),
                       ("4 · Construir el motor", "Escribió el motor de MRR (actual vs. corregido) y el modelo de dos "
                        "capas", "Escribí los casos con respuesta conocida: las 3 preguntas del CFO, mora, prepagos y "
-                       "bordes", "23 pruebas; conciliación mes a mes: la suma de movimientos = cambio del MRR"),
+                       "bordes", "Pruebas con respuesta conocida; conciliación mes a mes: la suma de movimientos = cambio del MRR"),
                       ("5 · Validar por otra vía", "Escribió el mismo cálculo en SQL (DuckDB)", "Exigí que SQL y Python "
                        "coincidieran antes de usar una cifra", "3 pruebas SQL = Python, mes a mes"),
                       ("6 · Funnel sin datos", "Generador sintético y métricas del funnel", "Diseñé 2 problemas "
