@@ -12,6 +12,10 @@ from pathlib import Path
 APP = Path(__file__).resolve().parent
 sys.path[:0] = [str(APP.parent), str(APP)]
 
+import fresh  # noqa: E402
+
+fresh.reload_project_modules()          # no mezclar versiones viejas y nuevas tras un redespliegue
+
 import common as C  # noqa: E402
 import operar as O  # noqa: E402
 from finora.funnel_synth import CHANNELS  # noqa: E402

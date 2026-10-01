@@ -12,6 +12,10 @@ from pathlib import Path
 APP = Path(__file__).resolve().parent
 sys.path[:0] = [str(APP.parent), str(APP)]
 
+import fresh  # noqa: E402
+
+fresh.reload_project_modules()          # no mezclar versiones viejas y nuevas tras un redespliegue
+
 import pandas as pd  # noqa: E402
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
