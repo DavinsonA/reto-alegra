@@ -1,7 +1,7 @@
 """Capturas de las apps para revisión visual (usa el Chrome instalado vía Playwright).
 
 Uso: python tools/screenshot.py <salida> <puerto> [secciones...]   (la app debe correr en http://localhost:<puerto>)
-Modo del sistema emulado: variable de entorno SHOT_SCHEME=light|dark (por defecto light).
+Tamaño: SHOT_WIDTH y SHOT_HEIGHT. Modo del sistema emulado: SHOT_SCHEME=light|dark (las apps son solo claras).
 Si una sección tiene pestañas, también captura cada pestaña.
 """
 import os
@@ -17,7 +17,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 
 def settle(page):
-    page.wait_for_selector('[data-testid="stSidebar"]', timeout=60_000)
+    page.wait_for_selector('[data-testid="stSidebar"]', state="attached", timeout=60_000)
     page.wait_for_timeout(1500)
     try:                                                   # esperar a que terminen de dibujarse los gráficos
         page.wait_for_function("document.querySelectorAll('[data-testid=\"stSkeleton\"]').length === 0", timeout=20_000)
@@ -29,7 +29,7 @@ def settle(page):
 with sync_playwright() as p:
     browser = p.chromium.launch(channel="chrome", headless=True)
     scheme = os.environ.get("SHOT_SCHEME", "light")
-    page = browser.new_page(viewport={"width": 1440, "height": int(os.environ.get("SHOT_HEIGHT", 4200))}, device_scale_factor=1, color_scheme=scheme)
+    page = browser.new_page(viewport={"width": int(os.environ.get("SHOT_WIDTH", 1440)), "height": int(os.environ.get("SHOT_HEIGHT", 4200))}, device_scale_factor=1, color_scheme=scheme)
     for s in SECTIONS:
         page.goto(f"http://localhost:{PORT}/?s={s}", wait_until="networkidle")
         settle(page)

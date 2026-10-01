@@ -42,7 +42,7 @@ app/               las tres apps en Streamlit (leen solo app/data/, agregados)
   tablero.py         tablero operativo para revisiones futuras
   operar.py          vistas del tablero: revisión mensual del MRR (CFO) y semanal del funnel (CRO)
   common.py          datos, constantes y navegación compartidos por las tres apps
-  brand.py           marca (temas Día y Noche) y componentes de gráfico
+  brand.py           marca (un solo tema, claro) y componentes de gráfico
 docs/              modelo de datos, diccionario de métricas y diseño del tablero (investigación)
 notebooks/         exploración inicial (perfilado)
 pipeline.py        corre todo y regenera app/data/

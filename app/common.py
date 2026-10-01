@@ -96,16 +96,50 @@ def nonmrr_cash() -> pd.Series:
 
 
 # ---------- página y navegación ----------
-def page(app: str, sections: list[str], blurb: str) -> tuple[B.Theme, str]:
-    """Configura la página con la marca y devuelve (tema, sección elegida). `?s=2` abre la sección 2."""
-    st.set_page_config(page_title=f"Finora · {APPS[app]}", layout="wide")
+_BI_CSS = """<style>
+.block-container { max-width:none !important; padding:0.75rem 2rem 2rem !important; }
+.da-bar-name { font:600 20px/26px var(--font-display); color:var(--ink); }
+.da-bar-sub, .da-bar-meta { font:400 13px/20px var(--font-sans); color:var(--ink-muted); }
+.da-bar-meta { text-align:right; }
+.da-bar-rule { border-top:1px solid var(--line-strong); margin:4px 0 16px; }
+</style>"""
+
+
+def _keep_section(sections: list[str]) -> None:
+    """El selector de páginas no queda vacío si se vuelve a hacer clic en la página activa."""
+    if st.session_state.get("sec") is None:
+        st.session_state["sec"] = st.session_state.get("sec_last", sections[0])
+
+
+def page(app: str, sections: list[str], blurb: str, top_nav: bool = False) -> tuple[B.Theme, str]:
+    """Configura la página con la marca y devuelve (tema, sección elegida). `?s=2` abre la sección 2.
+
+    top_nav: diseño de herramienta BI (lienzo ancho, barra superior con las páginas, barra lateral plegada).
+    """
+    st.set_page_config(page_title=f"Finora · {APPS[app]}", layout="wide",
+                       initial_sidebar_state="collapsed" if top_nav else "auto")
     t = B.inject()
     B.identity()
     st.sidebar.caption(f"Reto Business Analytics · Finora  \n**{APPS[app]}** · {blurb}")
     if "sec" not in st.session_state:
         qs = st.query_params.get("s", "0")
         st.session_state["sec"] = sections[int(qs)] if qs.isdigit() and int(qs) < len(sections) else sections[0]
-    section = st.sidebar.radio("Sección", sections, key="sec", label_visibility="collapsed")
+    if top_nav:
+        st.markdown(_BI_CSS, unsafe_allow_html=True)
+        c1, c2, c3 = st.columns([3, 4, 3], vertical_alignment="center")
+        c1.markdown(f'<div class="da-bar-name">Finora · {APPS[app]}</div>'
+                    f'<div class="da-bar-sub">Davinson Arteaga · {blurb}</div>', unsafe_allow_html=True)
+        with c2:
+            section = st.segmented_control("Página", sections, key="sec", label_visibility="collapsed",
+                                           on_change=_keep_section, args=(sections,))
+        others = " · ".join(f'<a href="{LINKS[k]}">{APPS[k]}</a>' for k in APPS if k != app and LINKS[k])
+        c3.markdown(f'<div class="da-bar-meta">Datos reales agregados · corte oct-2024<br>{others}</div>',
+                    unsafe_allow_html=True)
+        st.markdown('<div class="da-bar-rule"></div>', unsafe_allow_html=True)
+        section = section or st.session_state.get("sec_last", sections[0])
+        st.session_state["sec_last"] = section
+    else:
+        section = st.sidebar.radio("Sección", sections, key="sec", label_visibility="collapsed")
     st.sidebar.divider()
     st.sidebar.caption("Datos reales **agregados**, sin detalle por cliente. Montos en COP; 1 MM = 1 millón.")
     st.sidebar.caption("El funnel usa datos **sintéticos**, rotulados como tales.")

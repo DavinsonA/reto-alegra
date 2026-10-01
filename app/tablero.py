@@ -20,7 +20,7 @@ S_MON = "Revisión mensual del MRR · CFO"
 S_WEEK = "Revisión semanal del funnel · CRO"
 SECTIONS = [S_MON, S_WEEK]
 
-T, section = C.page("tablero", SECTIONS, "para operar cada mes y cada semana")
+T, section = C.page("tablero", SECTIONS, "para operar cada mes y cada semana", top_nav=True)
 
 if section == S_MON:
     O.monthly_review(T)

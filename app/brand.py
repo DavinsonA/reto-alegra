@@ -1,10 +1,10 @@
-"""Marca personal de Davinson Arteaga aplicada a la demo, en dos temas que siguen al de Streamlit/sistema.
+"""Marca personal de Davinson Arteaga aplicada a las apps, en un solo tema claro (Día).
 
-- **Día**: superficies y tinta del tema de VS Code "Davinson Día" (fondo #FAFBFC, barra #F1F3F6, bordes
-  #E3E7EC, tinta #11151A, primario #005C56, enlaces #236997) + paleta `viz` Día de la skill `davinson-brand`.
-- **Noche**: tokens Noche pastel de la skill `davinson-brand`.
-- Paletas de gráficos validadas con `validate_palette.js` en su superficie (Día sobre #ffffff, Noche sobre
-  #152a2f): todas las combinaciones usadas pasan (CVD ΔE ≥ 8,7; visión normal ≥ 17,7; contraste ≥ 3:1).
+- Superficies y tinta del tema de VS Code "Davinson Día" (fondo #FAFBFC, barra #F1F3F6, bordes #E3E7EC,
+  tinta #11151A, primario #005C56, enlaces #236997) + paleta `viz` Día de la skill `davinson-brand`.
+- Paleta de gráficos validada con `validate_palette.js` sobre #ffffff: todas las combinaciones usadas pasan
+  (CVD ΔE ≥ 8,7; visión normal ≥ 17,7; contraste ≥ 3:1).
+- El tema se fija en .streamlit/config.toml: la app no cambia a oscuro aunque el sistema lo esté.
 """
 from __future__ import annotations
 
@@ -56,21 +56,11 @@ DIA = Theme(
     seq=("#d9f6f1", "#abe5dd", "#7bcbc6", "#49aaaa", "#1e8691", "#056374", "#043f52"),
     div=("#a54a24", "#ce7951", "#ebb79d", "#e7eeee", "#a0cae7", "#549ac9", "#236997"),
 )
-NOCHE = Theme(
-    mode="dark", bg="#0e2024", surface="#152a2f", raised="#1e343a", sidebar="#152a2f",
-    line="#26434a", line_strong="#5a8990", grid_dot="#1d383e", ink="#e6f2f1", muted="#a2bfc2",
-    accent="#a1dafc", accent_soft="#1c3645", negative="#ff9480", negative_soft="#3d2a24",
-    warning="#ffc857", warning_soft="#353220", logo=MINT, role=MINT, band="rgba(156,224,217,0.10)",
-    viz=("#25a897", "#927ccd", "#ca7b57", "#4b9bcf", "#c4759c", "#af8e2a"),
-    seq=("#043f52", "#056374", "#1e8691", "#49aaaa", "#7bcbc6", "#abe5dd", "#d9f6f1"),
-    div=("#a54a24", "#ce7951", "#ebb79d", "#2e4146", "#a0cae7", "#549ac9", "#236997"),
-)
 
 
 def theme() -> Theme:
-    """Tema activo según Streamlit (que sigue al sistema o a la elección del usuario). Día por defecto."""
-    t = getattr(st.context, "theme", None)
-    return NOCHE if getattr(t, "type", None) == "dark" else DIA
+    """Tema de las apps: solo claro (Día)."""
+    return DIA
 
 
 def _logo(color: str) -> str:
@@ -109,6 +99,10 @@ h1, h2, h3, .da-h3 {{ text-wrap:balance; }}
 .da-grid {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:var(--space-5); margin:4px 0 24px; }}
 .da-card {{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md); padding:var(--space-5); }}
 .da-card-pastel {{ border:0; }}
+.da-grid-compact {{ gap:var(--space-4); margin:0 0 var(--space-4); }}
+.da-grid-compact .da-card {{ padding:var(--space-4) var(--space-5); }}
+.da-grid-compact .da-kpi {{ gap:6px; }}
+.da-grid-compact .da-kpi-value {{ font-size:clamp(24px, 1.9vw, 32px) !important; }}
 .da-overline {{ font:500 12px/16px var(--font-mono) !important; letter-spacing:.1em !important; text-transform:uppercase; color:var(--ink-muted); margin:0 !important; }}
 .da-kpi {{ display:flex; flex-direction:column; gap:var(--space-2); }}
 .da-kpi-value {{ font:600 clamp(26px, 2.4vw, 40px)/1.1 var(--font-display) !important; white-space:nowrap !important; letter-spacing:-.01em; font-variant-numeric:tabular-nums; margin:0 !important; color:var(--ink); }}
@@ -175,8 +169,6 @@ h1, h2, h3, .da-h3 {{ text-wrap:balance; }}
 .da-id {{ display:flex; flex-direction:column; align-items:flex-start; margin:4px 0 8px; }}
 .da-name {{ font:600 18px/22px var(--font-display) !important; color:var(--ink); margin:12px 0 0 !important; }}
 .da-role {{ font:500 14px/20px var(--font-sans) !important; color:{t.role} !important; margin:2px 0 0 !important; white-space:nowrap; }}
-{'''/* botón primario mint (Noche): la tinta sobre un pastel siempre es abyss */
-button[kind="primary"], button[kind="primary"] * { color:var(--abyss) !important; }''' if t.mode == "dark" else ""}
 @media print {{ .stApp {{ background-image:none; }} }}
 </style>
 """
@@ -222,8 +214,9 @@ def es_table(df: pd.DataFrame, decimals: int = 1):
 
 
 # ---------- componentes ----------
-def kpi_row(items: list[dict]) -> None:
-    """items: dict(overline, value, foot, delta=None, delta_kind=None|'up'|'down', pastel=False). Máx. 4."""
+def kpi_row(items: list[dict], compact: bool = False) -> None:
+    """items: dict(overline, value, foot, delta=None, delta_kind=None|'up'|'down', pastel=False). Máx. 4.
+    compact: versión densa para el tablero (menos relleno, cifra más baja)."""
     cards = []
     for it in items[:4]:
         cls = "da-card da-kpi" + (" da-card-pastel" if it.get("pastel") else "")
@@ -235,7 +228,8 @@ def kpi_row(items: list[dict]) -> None:
         cards.append(f'<div class="{cls}"{style_}><div class="da-overline">{html.escape(it["overline"])}</div>'
                      f'<div class="da-kpi-value">{html.escape(it["value"])}</div>'
                      f'<div class="da-kpi-foot">{delta}<span>{html.escape(it["foot"])}</span></div></div>')
-    st.markdown(f'<div class="da-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+    grid = "da-grid da-grid-compact" if compact else "da-grid"
+    st.markdown(f'<div class="{grid}">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
 def callout(text_md: str, kind: str = "info") -> None:
@@ -254,7 +248,7 @@ def tags(groups: list[tuple[str, list[str]]]) -> None:
     st.markdown(f'<div class="da-tags">{"".join(out)}</div>', unsafe_allow_html=True)
 
 
-def _month_ticks(fig: go.Figure) -> None:
+def _month_ticks(fig: go.Figure, yearly: bool = False) -> None:
     """Ejes de fecha con meses en español (ene y jul de cada año)."""
     xs = []
     for tr in fig.data:
@@ -267,12 +261,16 @@ def _month_ticks(fig: go.Figure) -> None:
     except Exception:
         return
     months = pd.period_range(d.min(), d.max(), freq="M")
+    if yearly:                                   # gráficos estrechos: una marca por año, sin girar
+        vals = [m for m in months if m.month == 1]
+        fig.update_xaxes(tickvals=[m.start_time for m in vals], ticktext=[str(m.year) for m in vals], tickangle=0)
+        return
     vals = [m for m in months if m.month in (1, 7)]
     fig.update_xaxes(tickvals=[m.start_time for m in vals], ticktext=[f"{MESES[m.month - 1]} {m.year}" for m in vals])
 
 
 def style(fig: go.Figure, height: int = 360, ysuffix: str | None = None, right: int = 16,
-          month_ticks: bool = True) -> go.Figure:
+          month_ticks: bool | str = True) -> go.Figure:
     """Anatomía de gráfico de marca: superficie del tema, grilla `line`, eje `line-strong`, ticks mono, un eje Y."""
     t = theme()
     fig.update_layout(
@@ -290,7 +288,7 @@ def style(fig: go.Figure, height: int = 360, ysuffix: str | None = None, right: 
                      tickfont=dict(family=FONT_MONO, size=11, color=t.muted), ticksuffix=ysuffix or "",
                      title_font=dict(color=t.muted), tickformat=",~f")
     if month_ticks:
-        _month_ticks(fig)
+        _month_ticks(fig, yearly=month_ticks == "year")
     ys = [v for tr in fig.data if tr.type == "bar" and tr.orientation != "h" and tr.y is not None
           for v in tr.y if isinstance(v, (int, float)) and v == v]
     if ys and min(ys) >= 0:                       # solo positivos: la línea del eje X ya es la base
@@ -319,7 +317,7 @@ def _head(overline: str, title: str, subtitle: str) -> str:
 
 def chart_frame(key: str, overline: str, title: str, subtitle: str, fig: go.Figure, data: pd.DataFrame | None = None,
                 source: str | None = "Fuente: Transactions.csv, agregado · corte oct-2024", height: int = 360,
-                ysuffix: str | None = None, right: int = 16, month_ticks: bool = True) -> None:
+                ysuffix: str | None = None, right: int = 16, month_ticks: bool | str = True) -> None:
     """ChartFrame: título que enuncia el hallazgo + qué se mide + gráfico + Ver datos + fuente (omitible si es común)."""
     with st.container(border=True, key=f"frame_{key}"):
         st.markdown(_head(overline, title, subtitle), unsafe_allow_html=True)

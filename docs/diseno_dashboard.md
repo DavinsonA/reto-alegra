@@ -45,6 +45,8 @@ Tres apps, una por **uso**, sobre el mismo motor y las mismas tablas agregadas (
 | **Demo y proceso con IA** (`demo.py`) | Caso CFO y Caso CRO | CFO, CRO | Adoptar el modelo de dos capas; qué datos instrumentar | Una vez |
 | **Demo y proceso con IA** (`demo.py`) | Modelo de datos, S&M, calidad de datos | Analítica, Finanzas | Cómo se construye y qué no se puede concluir | Consulta |
 
+El tablero usa una distribución **horizontal, como una herramienta BI**: lienzo ancho con la barra lateral plegada; barra superior con las páginas (mensual y semanal) y el corte de datos; en cada página, el filtro arriba a la derecha, una franja de KPI, una fila de análisis con gráfico, tabla y lectura lado a lado, y los pequeños múltiplos en rejilla (4 por fila). Lo que se consulta menos (dueños y reglas del CFO) queda plegado. Las tres apps usan solo el tema claro.
+
 ### 3.1 Revisión mensual del MRR (CFO)
 Primero lo que se lee arriba del pliegue:
 1. **Selector de mes de cierre** (por defecto, el último).

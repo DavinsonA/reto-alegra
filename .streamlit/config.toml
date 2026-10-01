@@ -1,18 +1,8 @@
-# Dos temas que siguen al sistema (como el VS Code de Davinson):
-#   Día   = tema de VS Code "Davinson Día" + paleta viz Día de la marca
-#   Noche = Noche pastel de la marca
-# El usuario también puede elegirlos en el menú ⋮ → Settings.
+# Un solo tema, claro: superficies del tema de VS Code "Davinson Día" + paleta viz Día de la marca.
+# Al definir el tema aquí (sin [theme.dark]), la app no sigue el modo oscuro del sistema,
+# y toolbarMode = "minimal" quita del menú el selector de tema.
 
 [theme]
-# Tipografía y forma comunes a ambos temas (marca: Space Grotesk, IBM Plex Sans, IBM Plex Mono)
-font = "IBM Plex Sans:https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap, sans-serif"
-headingFont = "Space Grotesk:https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&display=swap, sans-serif"
-codeFont = "IBM Plex Mono:https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap, monospace"
-headingFontSizes = ["2rem", "1.5rem", "1.125rem"]
-headingFontWeights = 600
-baseRadius = "0.5rem"
-
-[theme.light]
 base = "light"
 primaryColor = "#005C56"
 backgroundColor = "#FAFBFC"
@@ -21,29 +11,21 @@ textColor = "#11151A"
 linkColor = "#236997"
 borderColor = "#D5DAE1"
 chartCategoricalColors = ["#009786", "#8670c0", "#ba673f", "#2b88c0", "#b4608a", "#a28218"]
+# Tipografía y forma (marca: Space Grotesk, IBM Plex Sans, IBM Plex Mono)
+font = "IBM Plex Sans:https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap, sans-serif"
+headingFont = "Space Grotesk:https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&display=swap, sans-serif"
+codeFont = "IBM Plex Mono:https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap, monospace"
+headingFontSizes = ["2rem", "1.5rem", "1.125rem"]
+headingFontWeights = 600
+baseRadius = "0.5rem"
 
-[theme.light.sidebar]
+[theme.sidebar]
 backgroundColor = "#F1F3F6"
 secondaryBackgroundColor = "#FAFBFC"
 borderColor = "#E3E7EC"
-
-[theme.dark]
-base = "dark"
-primaryColor = "#9ce0d9"
-backgroundColor = "#0e2024"
-secondaryBackgroundColor = "#1e343a"
-textColor = "#e6f2f1"
-linkColor = "#a1dafc"
-borderColor = "#26434a"
-chartCategoricalColors = ["#25a897", "#927ccd", "#ca7b57", "#4b9bcf", "#c4759c", "#af8e2a"]
-
-[theme.dark.sidebar]
-backgroundColor = "#152a2f"
-secondaryBackgroundColor = "#1e343a"
-borderColor = "#26434a"
 
 [server]
 headless = true
 
 [client]
-toolbarMode = "viewer"
+toolbarMode = "minimal"
