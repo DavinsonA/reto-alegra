@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+# datos originales del reto y tablas por cliente: NO se publican
+/data/
+/outputs/
+# documentos internos del proceso de selección (no se publican)
+/ENUNCIADO.md
+/CONTEXTO.md
