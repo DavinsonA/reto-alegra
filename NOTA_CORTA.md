@@ -2,7 +2,10 @@
 
 Davinson Arteaga · octubre de 2026
 
-Historia ejecutiva: [link] · Demo y proceso con IA: [link] · Tablero operativo: [link] · Repositorio: [link]
+- Historia ejecutiva: https://finora-historia.streamlit.app/
+- Demo y proceso con IA: https://finora-demo.streamlit.app/
+- Tablero operativo: https://finora-tablero.streamlit.app/
+- Repositorio: https://github.com/DavinsonA/reto-alegra
 
 **La idea en una frase:** Finora mide caja y la llama MRR. Por eso confunde lo que hace el cliente con lo que decide la empresa (cobro, precios, descuentos, canales), y separar las dos cosas cambia dónde invertir.
 

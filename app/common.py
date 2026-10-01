@@ -26,7 +26,7 @@ N_TESTS = 48                     # pruebas automáticas del repositorio (pytest)
 
 APPS = {"historia": "Historia ejecutiva", "demo": "Demo y proceso con IA", "tablero": "Tablero operativo"}
 # Enlaces públicos de cada app: se llenan al publicar en Streamlit Community Cloud
-LINKS = {"historia": "", "demo": "", "tablero": ""}
+LINKS = {"historia": "https://finora-historia.streamlit.app/", "demo": "https://finora-demo.streamlit.app/", "tablero": "https://finora-tablero.streamlit.app/"}
 
 
 # ---------- datos ----------

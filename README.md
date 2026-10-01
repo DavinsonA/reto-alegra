@@ -6,9 +6,9 @@ Tres apps, una por uso, sobre el mismo motor y las mismas tablas agregadas:
 
 | App | Para qué | Link |
 |---|---|---|
-| **Historia ejecutiva** (`app/historia.py`) | Video 1: situación, hallazgos, implicación, decisión y acción, una idea por pantalla | _(al publicar)_ |
-| **Demo y proceso con IA** (`app/demo.py`) | Video 2: cómo trabajé con IA y el análisis completo de los dos casos | _(al publicar)_ |
-| **Tablero operativo** (`app/tablero.py`) | Revisiones futuras: mensual del MRR (CFO) y semanal del funnel (CRO) | _(al publicar)_ |
+| **Historia ejecutiva** (`app/historia.py`) | Video 1: situación, hallazgos, implicación, decisión y acción, una idea por pantalla | [finora-historia](https://finora-historia.streamlit.app/) |
+| **Demo y proceso con IA** (`app/demo.py`) | Video 2: cómo trabajé con IA y el análisis completo de los dos casos | [finora-demo](https://finora-demo.streamlit.app/) |
+| **Tablero operativo** (`app/tablero.py`) | Revisiones futuras: mensual del MRR (CFO) y semanal del funnel (CRO) | [finora-tablero](https://finora-tablero.streamlit.app/) |
 
 **Bitácora de IA:** [`AI_LOG.md`](AI_LOG.md) · **Hallazgos:** [`HALLAZGOS.md`](HALLAZGOS.md) · **Modelo de datos:** [`docs/modelo_datos.md`](docs/modelo_datos.md)
 
