@@ -86,8 +86,11 @@ def test_las_cifras_de_la_nota_aparecen_igual_en_las_apps():
     checks = {
         ("historia", 0): [f"{f['crec_mrr']} %", f"De {f['mrr_ini']} a {f['mrr_fin']} MM", f"({f['sm_vs_mrr']} veces)"],
         ("historia", 1): [f"exagera el churn {f['x_churn']} veces", f"churn {f['cor_churn']} MM real contra {f['act_churn']} MM",
-                          f"entre {f['sens_xchurn_min']} y {f['sens_xchurn_max']} veces"],
+                          f"entre {f['sens_xchurn_min']} y {f['sens_xchurn_max']} veces",
+                          f"de {f['cambio_neto']} MM de crecimiento, {f['cliente']} MM es comportamiento del cliente y "
+                          f"{f['cor_price']} MM son subidas de precio"],
         ("historia", 2): [f"entran {f['caida_m3']} % más pequeños"],
+        ("historia", 3): [f"conserva el {f['nrr_act_2023']} % de su ingreso", f"Conserva el {f['nrr_cor_2023']} %"],
         ("demo", 1): [f"{f['cor_churn']} MM", f"{f['cliente']} MM", f"{f['cor_price']} MM", f"{f['half_techo']} MM",
                       f"retienen {f['nrr_cor_2023']} % de su MRR a 12 meses, no {f['nrr_act_2023']} %"],
         ("tablero", 0): [f"{f['mrr_fin']} MM", f"{f['mora_abierta']} MM de MRR está en mora",

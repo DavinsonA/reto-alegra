@@ -41,6 +41,7 @@ st.markdown(f"""<style>
 .hs-steps span.on {{ background:{T.viz[0]}; }}
 .hs-note {{ font:400 15px/24px var(--font-sans); color:var(--ink-muted); max-width:78ch; margin:0 0 8px; }}
 .hs-note b {{ color:var(--ink); }}
+.hs-lead {{ font:400 17px/26px var(--font-sans); color:var(--ink); margin:-4px 0 14px; max-width:none; }}
 .hs-rules {{ display:grid; grid-template-columns:1fr 1fr; gap:6px 40px; margin:8px 0 6px; }}
 .hs-rules div {{ font:400 15px/22px var(--font-sans); color:var(--ink); }}
 .hs-rules-foot {{ font:400 14px/21px var(--font-sans) !important; color:var(--ink-muted); margin:6px 0 0 !important; }}
@@ -130,6 +131,9 @@ if i == 0:
 # =====================================================================================
 elif i == 1:
     st.title(f"El modelo de caja exagera el churn {F_['x_churn']} veces")
+    st.markdown(f'<div class="hs-lead"><b>Respuesta al CFO:</b> de {F_["cambio_neto"]} MM de crecimiento, '
+                f'{F_["cliente"]} MM es comportamiento del cliente y {F_["cor_price"]} MM son subidas de precio; los '
+                'descuentos no se pueden medir con caja.</div>', unsafe_allow_html=True)
     fig = go.Figure()
     labels = [MOVE_LABELS[m] for m in MOVES]
     for key, tot in ((COR, tc), (ACT, ta)):
@@ -139,7 +143,7 @@ elif i == 1:
     fig.update_xaxes(showgrid=True, gridcolor=T.line, ticksuffix=" MM")
     B.chart_frame("h_bridge", "",
                   f"El total cuadra, el porqué no: churn {F_['cor_churn']} MM real contra {F_['act_churn']} MM en caja",
-                  "Movimientos de MRR acumulados por tipo · millones de COP · abr-2022 a oct-2024", fig, None, SRC_TX, 300)
+                  "Movimientos de MRR acumulados por tipo · millones de COP · abr-2022 a oct-2024", fig, None, SRC_TX, 220)
     demo = f'<a href="{C.LINKS["demo"]}?s=5">la demo</a>' if C.LINKS["demo"] else "la demo"
     st.markdown(
         '<div class="da-callout da-callout-info"><p><b>Cómo lo corrige el modelo</b></p><div class="hs-rules">'
@@ -175,8 +179,9 @@ elif i == 3:
     st.title("Con el modelo actual, Finora invertiría en el lugar equivocado")
     B.text_frame("h_impl", "", "Cada lectura del modelo actual empuja una decisión distinta",
                  "Lo que dice hoy el modelo de caja frente a lo que muestran los datos corregidos", pd.DataFrame([
-                     ("Retención", "Perdemos mucho MRR por churn", "El churn real es varias veces menor, y las "
-                      "cohortes conservan la mayor parte de su ingreso", "Sobreinvertir en retención"),
+                     ("Retención", f"Cada cohorte conserva el {F_['nrr_act_2023']} % de su ingreso a 12 meses",
+                      f"Conserva el {F_['nrr_cor_2023']} %: el churn real es varias veces menor",
+                      "Sobreinvertir en retención"),
                      ("Descuentos", "Cuando vence un descuento, el MRR «crece»",
                       "Es una decisión de pricing, no expansión del cliente",
                       "Premiar descuentos como crecimiento y no saber cuánto cuestan"),
