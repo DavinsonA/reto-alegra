@@ -41,6 +41,10 @@ st.markdown(f"""<style>
 .hs-steps span.on {{ background:{T.viz[0]}; }}
 .hs-note {{ font:400 15px/24px var(--font-sans); color:var(--ink-muted); max-width:78ch; margin:0 0 8px; }}
 .hs-note b {{ color:var(--ink); }}
+.hs-rules {{ display:grid; grid-template-columns:1fr 1fr; gap:6px 40px; margin:8px 0 6px; }}
+.hs-rules div {{ font:400 15px/22px var(--font-sans); color:var(--ink); }}
+.hs-rules-foot {{ font:400 14px/21px var(--font-sans) !important; color:var(--ink-muted); margin:6px 0 0 !important; }}
+@media (max-width: 900px) {{ .hs-rules {{ grid-template-columns:1fr; }} }}
 /* la historia se graba a 1440 × 900: cada paso cabe sin desplazarse */
 .block-container {{ padding-top:1.25rem !important; padding-bottom:1rem !important; }}
 .da-row {{ padding:10px 0 !important; }}
@@ -135,11 +139,17 @@ elif i == 1:
     fig.update_xaxes(showgrid=True, gridcolor=T.line, ticksuffix=" MM")
     B.chart_frame("h_bridge", "",
                   f"El total cuadra, el porqué no: churn {F_['cor_churn']} MM real contra {F_['act_churn']} MM en caja",
-                  "Movimientos de MRR acumulados por tipo · millones de COP · abr-2022 a oct-2024", fig, None, SRC_TX, 340)
-    B.callout("<b>Por qué:</b> la caja que no es MRR (mora y puestas al día, prepagos de varios meses, pagos agrupados y "
-              "retroactivos de precio) se lee como churn, reactivación y expansión. La conclusión se sostiene al cambiar "
-              f"cada regla del modelo, una a la vez: el churn queda entre {F_['sens_xchurn_min']} y "
-              f"{F_['sens_xchurn_max']} veces exagerado.")
+                  "Movimientos de MRR acumulados por tipo · millones de COP · abr-2022 a oct-2024", fig, None, SRC_TX, 300)
+    demo = f'<a href="{C.LINKS["demo"]}?s=5">la demo</a>' if C.LINKS["demo"] else "la demo"
+    st.markdown(
+        '<div class="da-callout da-callout-info"><p><b>Cómo lo corrige el modelo</b></p><div class="hs-rules">'
+        "<div><b>Un mes sin pago no es churn:</b> el cliente sigue activo hasta 2 meses en mora.</div>"
+        "<div><b>Pagar lo atrasado no es expansión:</b> es cobro de mora.</div>"
+        "<div><b>Un pago por adelantado se reparte</b> en los meses que cubre.</div>"
+        "<div><b>Una subida de precio va aparte:</b> es decisión de Finora, no del cliente.</div></div>"
+        f'<p class="hs-rules-foot">La conclusión se sostiene al cambiar cada regla, una a la vez: el churn queda entre '
+        f"{F_['sens_xchurn_min']} y {F_['sens_xchurn_max']} veces exagerado. Reglas completas y sensibilidad en {demo}.</p>"
+        "</div>", unsafe_allow_html=True)
 
 # =====================================================================================
 elif i == 2:
