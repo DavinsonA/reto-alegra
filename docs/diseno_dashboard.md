@@ -28,7 +28,7 @@ Tres apps, una por **uso**, sobre el mismo motor y las mismas tablas agregadas (
 
 | App | Vista | Público | Decisión | Cadencia |
 |---|---|---|---|---|
-| **Historia ejecutiva** (`historia.py`) | 6 pantallas: situación, hallazgo del MRR, hallazgo de ventas, implicación, decisión y acción | CEO, CRO, CFO, evaluadores | Aprobar las 3 decisiones (MRR en dos capas, separar caja de MRR, instrumentar el funnel) | Una vez (video 1) |
+| **Historia ejecutiva** (`historia.py`) | 7 pantallas guiadas por las dos preguntas: las dos preguntas; CFO (negocio subyacente, dos capas, revisión mensual compacta); CRO (clientes ganados, revisión semanal compacta); qué pido y plan a 90 días | CEO, CRO, CFO, evaluadores | Aprobar las 3 decisiones (MRR en dos capas, separar caja de MRR, instrumentar el funnel) | Una vez (video 1) |
 | **Tablero operativo** (`tablero.py`) | **Revisión mensual del MRR** | CFO + RevOps | ¿El cambio del mes es señal o ruido? ¿Quién investiga qué? | Mensual, en el cierre |
 | **Tablero operativo** (`tablero.py`) | **Revisión semanal del funnel** (prototipo sintético) | CRO + líderes SDR/AE | ¿Qué entrada se salió de lo normal? ¿Capacidad, mezcla o post-SQL? | Semanal, 30 minutos |
 | **Demo y proceso con IA** (`demo.py`) | Proceso con IA paso a paso | Evaluadores, Analítica | Confiar (o no) en el método: qué hizo la IA, qué decidí yo, cómo se verificó | Una vez (video 2) |

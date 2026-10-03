@@ -6,7 +6,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 APP_DIR = Path(__file__).resolve().parents[1] / "app"
-N_SECTIONS = {"historia": 6, "demo": 6, "tablero": 2}
+N_SECTIONS = {"historia": 7, "demo": 6, "tablero": 2}
 CASES = [(app, i) for app, n in N_SECTIONS.items() for i in range(n)]
 
 
@@ -88,8 +88,9 @@ def test_las_cifras_de_la_nota_aparecen_igual_en_las_apps():
                           f"entre {f['sens_xchurn_min']} y {f['sens_xchurn_max']} veces",
                           f"de {f['cambio_neto']} MM de crecimiento, {f['cliente']} MM es comportamiento del cliente y "
                           f"{f['cor_price']} MM son subidas de precio"],
-        ("historia", 2): [f"entran {f['caida_m3']} % más pequeños"],
-        ("historia", 3): [f"conserva el {f['nrr_act_2023']} % de su ingreso", f"Conserva el {f['nrr_cor_2023']} %"],
+        ("historia", 2): [f"conserva el {f['nrr_act_2023']} % de su ingreso", f"Conserva el {f['nrr_cor_2023']} %"],
+        ("historia", 3): [f"{f['mrr_fin']} MM", f"{f['mora_abierta']} MM"],
+        ("historia", 4): [f"entran {f['caida_m3']} % más pequeños"],
         ("demo", 1): [f"{f['cor_churn']} MM", f"{f['cliente']} MM", f"{f['cor_price']} MM", f"{f['half_techo']} MM",
                       f"retienen {f['nrr_cor_2023']} % de su MRR a 12 meses, no {f['nrr_act_2023']} %"],
         ("tablero", 0): [f"{f['mrr_fin']} MM", f"{f['mora_abierta']} MM de MRR está en mora",

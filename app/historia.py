@@ -19,10 +19,14 @@ import streamlit as st
 import brand as B
 import common as C
 from common import ACT, COR, MOVE_LABELS, MOVES, SRC_TX
+import operar as O
+from finora.funnel_synth import CHANNELS
 from finora.two_layer import two_layer_movements
 
-SCREENS = ["1 · Situación", "2 · Hallazgo del MRR", "3 · Hallazgo de ventas", "4 · Implicación", "5 · Decisión",
-           "6 · Acción"]
+SCREENS = ["1 · Las dos preguntas", "2 · CFO · el negocio subyacente", "3 · CFO · descuentos en dos capas",
+           "4 · CFO · revisión mensual", "5 · CRO · clientes ganados", "6 · CRO · revisión semanal",
+           "7 · Qué pido y plan a 90 días"]
+STAGE = ["Situación", "Hallazgo", "Implicación y decisión", "Acción", "Hallazgo", "Acción", "Decisión y acción"]
 T, section = C.page("historia", SCREENS, "para CEO, CFO y CRO")
 NAME = {COR: "Modelo corregido", ACT: "Modelo actual (caja)"}
 MODEL_COLORS = {COR: T.viz[0], ACT: T.viz[1]}
@@ -51,7 +55,7 @@ st.markdown(f"""<style>
 def steps() -> None:
     bars = "".join(f'<span class="{"on" if j <= i else ""}"></span>' for j in range(len(SCREENS)))
     st.markdown(f'<div class="hs-steps">{bars}</div><div class="da-overline">Paso {i + 1} de {len(SCREENS)} · '
-                f'{html.escape(section.split("· ", 1)[1])}</div>', unsafe_allow_html=True)
+                f'{html.escape(section.split("· ", 1)[1])} · {STAGE[i]}</div>', unsafe_allow_html=True)
 
 
 def split(items: list[tuple[str, str, str]]) -> None:
@@ -148,41 +152,6 @@ elif i == 1:
         "</div>", unsafe_allow_html=True)
 
 elif i == 2:
-    st.title(f"Ganamos el doble de clientes, pero entran {F_['caida_m3']} % más pequeños")
-    idx = pd.DataFrame({"Clientes nuevos por mes": ny["per_month"] / ny.loc["2022", "per_month"] * 100,
-                        "Ingreso por cliente nuevo (3.er mes)": ny["m3_ticket"] / ny.loc["2022", "m3_ticket"] * 100})
-    f = go.Figure()
-    for col, color in zip(idx.columns, T.viz[:2]):
-        f.add_bar(x=[f"{y}" for y in idx.index], y=idx[col], name=col, marker_color=color,
-                  text=[B.es(v, 0) for v in idx[col]], textposition="outside",
-                  textfont=dict(family=B.FONT_MONO, size=12, color=T.ink),
-                  hovertemplate="%{x} · " + col + ": %{y:.0f}<extra></extra>")
-    f.update_yaxes(range=[0, idx.values.max() * 1.18])
-    B.chart_frame("h_idx", "", "Más clientes cada año, y cada uno trae menos ingreso",
-                  "Promedio de cada año, índice 2022 = 100 · 2022 desde abril, 2024 hasta octubre", f, None, SRC_TX, 320,
-                  month_ticks=False)
-    B.callout("<b>Lo que estos datos no dicen:</b> si la caída viene del canal (más self-serve), del plan o tamaño del "
-              "cliente, o de descuentos de entrada. Ninguna de las explicaciones del equipo (demanda, calidad, velocidad, "
-              "post-SQL) se puede confirmar ni descartar sin eventos del funnel.")
-
-elif i == 3:
-    st.title("Con el modelo actual, Finora invertiría en el lugar equivocado")
-    B.text_frame("h_impl", "", "Cada lectura del modelo actual empuja una decisión distinta",
-                 "Lo que dice hoy el modelo de caja frente a lo que muestran los datos corregidos", pd.DataFrame([
-                     ("Retención", f"Cada cohorte conserva el {F_['nrr_act_2023']} % de su ingreso a 12 meses",
-                      f"Conserva el {F_['nrr_cor_2023']} %: el churn real es varias veces menor",
-                      "Sobreinvertir en retención"),
-                     ("Descuentos", "Cuando vence un descuento, el MRR «crece»",
-                      "Es una decisión de pricing, no expansión del cliente",
-                      "Premiar descuentos como crecimiento y no saber cuánto cuestan"),
-                     ("Cobranza", "Un cliente que no paga es churn", "Parte de ese MRR está en mora y se puede cobrar",
-                      "Dar por perdidas cuentas que se pueden cobrar"),
-                     ("Ventas", "Más leads es más demanda: más SDR o más presupuesto",
-                      "Entran clientes más pequeños en todas las industrias, y no sabemos por qué",
-                      "Contratar o recortar canales a ciegas"),
-                 ], columns=["Tema", "El modelo actual dice", "Los datos muestran", "Riesgo de decidir con el actual"]))
-
-elif i == 4:
     st.title("El fin de un descuento no es expansión: hay que medir el MRR en dos capas")
     mv = two_layer_movements([100, 130, 130], [0, 30, 0])
     names = {"expansion": "Expansión", "contraction": "Contracción", "discount_start": "Inicio de descuento",
@@ -202,15 +171,68 @@ elif i == 4:
                                "Dos capas · cliente": [moves(1, "customer"), moves(2, "customer")],
                                "Dos capas · pricing": [moves(1, "pricing"), moves(2, "pricing")]}),
                  "Mismo resultado en Python y en SQL · sql/03_movimientos_dos_capas.sql")
-    rows([
-        ("Medir el MRR en dos capas", "<b>Neto = lista − descuento.</b> Cada descuento se registra con inicio, fin, motivo "
-         "y aprobador.", "Responde al CFO: cuánto es cliente y cuánto pricing o descuentos"),
-        ("Separar la caja del MRR", "La mora no es churn hasta confirmarse (2 meses sin pago); Cobranza actúa antes.",
-         "Responde al CFO"),
-        ("Medir el funnel por eventos", "Conversión por cohorte y camino, y tiempo al primer contacto.", "Responde al CRO"),
-    ])
-    B.callout("<b>Lo que no decidiría todavía:</b> contratar SDR, recortar canales o mover el S&M sin el funnel por "
-              "eventos.", kind="warn")
+    B.text_frame("h_impl", "", "Decidir con el modelo de caja lleva a invertir en el lugar equivocado",
+                 "Lo que dice hoy el modelo actual frente a lo que muestran los datos corregidos", pd.DataFrame([
+                     ("Retención", f"Cada cohorte conserva el {F_['nrr_act_2023']} % de su ingreso a 12 meses",
+                      f"Conserva el {F_['nrr_cor_2023']} %: el churn real es varias veces menor",
+                      "Sobreinvertir en retención"),
+                     ("Descuentos", "Cuando vence un descuento, el MRR «crece»",
+                      "Es una decisión de pricing, no expansión del cliente",
+                      "Premiar descuentos como crecimiento y no saber cuánto cuestan"),
+                     ("Cobranza", "Un cliente que no paga es churn", "Parte de ese MRR está en mora y se puede cobrar",
+                      "Dar por perdidas cuentas que se pueden cobrar"),
+                 ], columns=["Tema", "El modelo actual dice", "Los datos muestran", "Riesgo de decidir con el actual"]))
+    st.markdown('<div class="hs-note"><b>Decisión:</b> medir el MRR en dos capas, <b>neto = lista − descuento</b>, con cada '
+                'descuento registrado con inicio, fin, motivo y aprobador. Y separar la caja del MRR: la mora no es churn '
+                'hasta confirmarse (2 meses sin pago), y Cobranza actúa antes.</div>', unsafe_allow_html=True)
+
+elif i == 3:
+    st.title("Cada cierre, el CFO ve qué cambió, por qué y quién actúa")
+    O.monthly_review(T, compact=True)
+    st.markdown(f'<div class="hs-note">Resumen de la revisión mensual con datos reales (corte oct-2024). La versión '
+                'completa, con señal frente a ruido por movimiento, eficiencia del S&M y dueños por métrica, está en el '
+                f'<a href="{C.LINKS["tablero"]}?s=0">tablero operativo</a>.</div>', unsafe_allow_html=True)
+
+elif i == 4:
+    st.title(f"Ganamos el doble de clientes, pero entran {F_['caida_m3']} % más pequeños")
+    idx = pd.DataFrame({"Clientes nuevos por mes": ny["per_month"] / ny.loc["2022", "per_month"] * 100,
+                        "Ingreso por cliente nuevo (3.er mes)": ny["m3_ticket"] / ny.loc["2022", "m3_ticket"] * 100})
+    f = go.Figure()
+    for col, color in zip(idx.columns, T.viz[:2]):
+        f.add_bar(x=[f"{y}" for y in idx.index], y=idx[col], name=col, marker_color=color,
+                  text=[B.es(v, 0) for v in idx[col]], textposition="outside",
+                  textfont=dict(family=B.FONT_MONO, size=12, color=T.ink),
+                  hovertemplate="%{x} · " + col + ": %{y:.0f}<extra></extra>")
+    f.update_yaxes(range=[0, idx.values.max() * 1.18])
+    c1, c2 = st.columns([5, 7], gap="medium")
+    with c1:
+        B.chart_frame("h_idx", "", "Más clientes cada año, y cada uno trae menos ingreso",
+                      "Índice 2022 = 100 · 2022 desde abril, 2024 hasta octubre · dentro de cada industria", f, None,
+                      SRC_TX, 300, month_ticks=False)
+    with c2:
+        B.text_frame("h_hyp", "", "Cada explicación del equipo tiene una prueba y los datos que la validarían",
+                     "Ninguna se puede confirmar ni descartar hoy; todas se pueden medir con eventos del funnel",
+                     pd.DataFrame([
+                         ("Demanda o mezcla de canal", "Domina el efecto mezcla: crecen canales de baja conversión",
+                          "Canal y fuente por lead; gasto por canal"),
+                         ("Calidad del lead", "Cae la tasa dentro del mismo canal",
+                          "Industria, tamaño y motivos de descalificación"),
+                         ("Velocidad o capacidad", "El primer contacto se demora al subir el volumen y la conversión "
+                          "cae con la demora", "Creación, primer contacto, dueño y carga por SDR"),
+                         ("Conversión post-SQL", "Cae SQL a Won o se alarga el ciclo",
+                          "Eventos de Demo y Proposal; motivos de pérdida"),
+                     ], columns=["Hipótesis", "Qué la confirmaría", "Datos necesarios"]))
+    B.callout("<b>Lo que estos datos no dicen:</b> si la caída viene del canal (más self-serve), del plan o tamaño del "
+              "cliente, o de descuentos de entrada. En pesos, «más leads, no más ventas» es «más clientes, pero más "
+              "pequeños», y pasa dentro de cada industria, no por un cambio de mezcla.")
+
+elif i == 5:
+    st.title("Cada semana, el CRO ve qué entrada se salió de lo normal y quién actúa")
+    O.weekly_review(T, dict(zip(CHANNELS, T.viz)), compact=True)
+    st.markdown('<div class="hs-note"><b>Cómo se mide:</b> tres caminos (self-serve, directo a SQL y recorrido SDR), '
+                'conversión por cohorte de creación en vez de foto mensual, y tiempo al primer contacto. La revisión '
+                'completa, con el formato fijo de 6 semanas y 12 meses, está en el '
+                f'<a href="{C.LINKS["tablero"]}?s=1">tablero operativo</a>.</div>', unsafe_allow_html=True)
 
 else:
     st.title("En 90 días, cada cierre puede separar lo que hace el cliente de lo que decide Finora")
@@ -225,16 +247,13 @@ else:
          "Etapas con fecha y hora, canal, camino y dueño. Arranca la revisión semanal de 30 minutos con alertas "
          "estadísticas."),
     ])
-    tablero = f'<a href="{C.LINKS["tablero"]}">tablero operativo</a>'
-    split([
-        ("Cómo se opera · CFO, mensual en el cierre", "¿El cambio del mes es señal o ruido?",
-         f"Puente en dos capas, rango normal de cada movimiento, lo que está en confirmación, y dueño y acción por "
-         f"métrica. Datos reales, en el {tablero}."),
-        ("Cómo se opera · CRO, semanal en 30 minutos", "¿Qué entrada se salió de lo normal?",
-         f"Mismo formato cada semana (6 semanas y 12 meses), árbol de métricas y leads estancados por dueño. Prototipo "
-         f"sintético en el {tablero} hasta tener los eventos."),
-    ])
-    B.callout("<p><b>Lo que pido hoy</b></p><ul><li>Registrar desde ya todo descuento nuevo con motivo, vigencia y "
-              "aprobador.</li><li>Acceso a los datos de facturación y a los eventos del CRM.</li><li>Validar con Finanzas "
-              "las unidades y el alcance del S&M.</li></ul>")
+    c1, c2 = st.columns(2, gap="medium")
+    with c1:
+        B.callout("<p><b>Lo que pido hoy</b></p><ul><li>Registrar desde ya todo descuento nuevo con motivo, vigencia y "
+                  "aprobador.</li><li>Acceso a los datos de facturación y a los eventos del CRM.</li><li>Validar con "
+                  "Finanzas las unidades y el alcance del S&M.</li></ul>")
+    with c2:
+        B.callout("<p><b>Lo que no decidiría todavía</b></p><ul><li>Contratar SDR o recortar canales sin el funnel por "
+                  "eventos.</li><li>Mover el presupuesto de S&M sin confirmar sus unidades: con las del enunciado, cada "
+                  f"peso devuelve entre {F_['magic_min']} y {F_['magic_max']} centavos de ingreso nuevo.</li></ul>", kind="warn")
 pager()

@@ -8,7 +8,7 @@ Tres apps, una por uso, sobre el mismo motor y las mismas tablas agregadas:
 
 | App | Para qué | Link |
 |---|---|---|
-| **Historia ejecutiva** (`app/historia.py`) | Video 1: situación, hallazgos, implicación, decisión y acción, una idea por pantalla | [finora-historia](https://finora-historia.streamlit.app/) |
+| **Historia ejecutiva** (`app/historia.py`) | Video 1: las dos preguntas; el CFO (negocio subyacente, descuentos en dos capas, revisión mensual); el CRO (clientes ganados, revisión semanal); qué pido y plan a 90 días | [finora-historia](https://finora-historia.streamlit.app/) |
 | **Demo y proceso con IA** (`app/demo.py`) | Video 2: cómo trabajé con IA y el análisis completo de los dos casos | [finora-demo](https://finora-demo.streamlit.app/) |
 | **Tablero operativo** (`app/tablero.py`) | Revisiones futuras: mensual del MRR (CFO) y semanal del funnel (CRO) | [finora-tablero](https://finora-tablero.streamlit.app/) |
 
@@ -37,7 +37,7 @@ finora/      motor: carga y unidades (load), modelo actual vs. corregido (mrr), 
              sensibilidad (aggregates), cifras clave y documentos (figures), funnel y prototipo sintético (funnel,
              funnel_synth), gráfico XmR (xmr)
 sql/         el mismo análisis en DuckDB/Postgres y el DDL del modelo de dos capas
-tests/       61 pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
+tests/       62 pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
 app/         las tres apps en Streamlit (historia, demo, tablero) sobre app/data/, solo agregados
 docs/        modelo de datos, diseño del tablero, plantillas de los documentos y capturas
 notebooks/   5 notebooks con salidas: del perfilado a las conclusiones (notebooks/README.md)
@@ -54,7 +54,7 @@ source .venv/bin/activate          # Linux/Mac
 # .venv\Scripts\activate           # Windows
 pip install -r requirements.txt
 python pipeline.py                 # regenera app/data/ y los documentos con sus cifras
-pytest -q                          # 61 pruebas
+pytest -q                          # 62 pruebas
 streamlit run app/historia.py      # o app/demo.py, o app/tablero.py
 ```
 

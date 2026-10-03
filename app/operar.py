@@ -49,7 +49,7 @@ def _page_header(title: str, purpose: str, ratio: tuple[int, int] = (3, 1)):
     return right
 
 
-def monthly_review(T: B.Theme) -> None:
+def monthly_review(T: B.Theme, compact: bool = False) -> None:
     b = _load("bridge_monthly")
     b = b[b["scenario"] == COR]
     piv = b.pivot_table(index="month", columns="movement", values="amount_cop").reindex(columns=MOVES).fillna(0)
@@ -67,10 +67,13 @@ def monthly_review(T: B.Theme) -> None:
     nm = _load("nonmrr_cash_monthly")
     pp_pend = nm[nm["extra_kind"] == "prepaid_pending"].set_index("month")
 
-    filters = _page_header("Revisión mensual del MRR",
-                           "Para: CFO y RevOps · Decide: si el cambio del mes es señal o ruido, y quién investiga · "
-                           "Cadencia: mensual, en el cierre")
-    m = filters.selectbox("Mes de cierre", months[::-1], format_func=_mes)
+    if compact:
+        m = months[-1]
+    else:
+        filters = _page_header("Revisión mensual del MRR",
+                               "Para: CFO y RevOps · Decide: si el cambio del mes es señal o ruido, y quién investiga · "
+                               "Cadencia: mensual, en el cierre")
+        m = filters.selectbox("Mes de cierre", months[::-1], format_func=_mes)
     pending = m in pending_months
     uplift_pending = m in up_pend.index
     i = months.index(m)
@@ -104,7 +107,7 @@ def monthly_review(T: B.Theme) -> None:
     if (sig("new_count")["reason"] == "8 puntos seguidos del mismo lado" and yago is not None
             and series["new_count"].loc[yago] > series["new_count"].loc[m]):
         new_foot += " · la señal es la racha, no el nivel: hace 12 meses fue un pico aislado"
-    B.kpi_row([
+    items = [
         dict(overline=f"MRR de cierre · {_mes(m)}", value=B.mm(mrr_w.loc[m]), pastel=True,
              delta=(f"{'+' if mrr_w.loc[m] >= mrr.shift(1).loc[m] else ''}"
                     f"{B.es((mrr_w.loc[m] / mrr.shift(1).loc[m] - 1) * 100, 1)} % vs. mes anterior"),
@@ -121,14 +124,21 @@ def monthly_review(T: B.Theme) -> None:
               foot=f"{int(cnt.loc[m, 'churn'])} clientes · {vs(-series['churn'])}")),
         dict(overline="Clientes nuevos", value=B.es(series["new_count"].loc[m], 0),
              delta=chips["new_count"][0], delta_kind=chips["new_count"][1], foot=new_foot),
-    ], compact=True)
+    ]
+    B.kpi_row(items[:3] if compact else items, compact=True)
 
     cust_moves = [("new", "Nuevos"), ("expansion", "Expans."), ("reactivation", "Reactiv."),
                   ("contraction", "Contrac."), ("churn", "Churn")]
     cust = sum(w.loc[m, k] for k, _ in cust_moves)
     price = w.loc[m, "price_uplift"]
+    prior = months[max(0, i - 12):i]
+
+    def avg12(k):
+        ms = [p_ for p_ in prior if not (k == "churn" and p_ in pending_months)] or [m]
+        return w.loc[ms, k].mean() / 1e6
+
     reading = st.container()
-    c1, c2 = st.columns([7, 5], gap="medium")
+    c1, c2 = (st.container(), None) if compact else st.columns([7, 5], gap="medium")
     with c1:
         x, base, y, color, text = [], [], [], [], []
         cum, ghost = 0.0, None
@@ -167,27 +177,24 @@ def monthly_review(T: B.Theme) -> None:
                       "Millones de COP · verde azulado = cliente suma, durazno = resta, violeta = pricing, "
                       "gris = subtotal y neto" + (" · churn punteado = en confirmación" if pending else ""),
                       fig, tbl, SRC_TX, 300, ysuffix=" MM", month_ticks=False)
-    with c2:
-        prior = months[max(0, i - 12):i]
-        def avg12(k):
-            ms = [p_ for p_ in prior if not (k == "churn" and p_ in pending_months)] or [m]
-            return w.loc[ms, k].mean() / 1e6
-        rows = []
-        for k in MOVES:
-            n = int(cnt.loc[m, k]) if m in cnt.index else 0
-            if k == "churn" and pending:
-                rows.append((LABEL[k], "en confirmación", f"{int(pend.loc[m, 'customers']) if m in pend.index else 0} en mora",
-                             B.es(avg12(k), 2)))
-            elif k == "price_uplift" and uplift_pending:
-                rows.append((LABEL[k], f"{B.es(w.loc[m, k] / 1e6, 2)} · en confirmación", B.es(n, 0), B.es(avg12(k), 2)))
-            else:
-                rows.append((LABEL[k], B.es(w.loc[m, k] / 1e6, 2), B.es(n, 0), B.es(avg12(k), 2)))
-        B.text_frame("mvtable", "", "Movimientos del mes", "Millones de COP y clientes · vs. promedio de 12 meses",
-                     pd.DataFrame(rows, columns=["Movimiento", "MM COP", "Clientes", "Prom. 12 m"]),
-                     right=("MM COP", "Clientes", "Prom. 12 m"),
-                     note=(f"Cliente: <b>{B.mm(cust, sign=True)}</b> · pricing: <b>{B.mm(price, sign=True)}</b> · "
-                           "descuentos: <b>sin dato</b> (instrumentar). Prom. 12 m: los 12 meses anteriores; el churn "
-                           "excluye los meses aún sin confirmar."))
+    if not compact:
+        with c2:
+            rows = []
+            for k in MOVES:
+                n = int(cnt.loc[m, k]) if m in cnt.index else 0
+                if k == "churn" and pending:
+                    rows.append((LABEL[k], "en confirmación", f"{int(pend.loc[m, 'customers']) if m in pend.index else 0} en mora",
+                                 B.es(avg12(k), 2)))
+                elif k == "price_uplift" and uplift_pending:
+                    rows.append((LABEL[k], f"{B.es(w.loc[m, k] / 1e6, 2)} · en confirmación", B.es(n, 0), B.es(avg12(k), 2)))
+                else:
+                    rows.append((LABEL[k], B.es(w.loc[m, k] / 1e6, 2), B.es(n, 0), B.es(avg12(k), 2)))
+            B.text_frame("mvtable", "", "Movimientos del mes", "Millones de COP y clientes · vs. promedio de 12 meses",
+                         pd.DataFrame(rows, columns=["Movimiento", "MM COP", "Clientes", "Prom. 12 m"]),
+                         right=("MM COP", "Clientes", "Prom. 12 m"),
+                         note=(f"Cliente: <b>{B.mm(cust, sign=True)}</b> · pricing: <b>{B.mm(price, sign=True)}</b> · "
+                               "descuentos: <b>sin dato</b> (instrumentar). Prom. 12 m: los 12 meses anteriores; el churn "
+                               "excluye los meses aún sin confirmar."))
     with reading:
         actions = {
             "new": "Marketing y Ventas: revisar mezcla de canales y ticket de entrada del mes.",
@@ -226,6 +233,9 @@ def monthly_review(T: B.Theme) -> None:
             lines.append("<b>Por qué:</b> ningún movimiento salió de su rango normal; es variación rutinaria. "
                          "<b>Qué hacemos:</b> nada que investigar este mes.")
         B.callout("".join(f"<p>{x_}</p>" for x_ in lines), cols=2)
+
+    if compact:
+        return
 
     st.markdown('<div class="da-h3" style="margin-top:8px">¿Señal o ruido?</div><div class="da-sub">Banda = rango '
                 'normal · rombo = señal · círculo = churn en confirmación · contracción y churn en positivo. Solo se '
@@ -343,13 +353,16 @@ def _fmt(v, suffix, scale):
     return f"{B.es(v * scale, d)}{suffix.replace(' ', chr(160))}"
 
 
-def weekly_review(T: B.Theme, channel_colors: dict) -> None:
-    filters = _page_header("Revisión semanal del funnel",
-                           "Para: CRO, líderes SDR y AE · Decide: qué entrada se salió de lo normal y quién actúa · "
-                           "Cadencia: semanal, 30 minutos · formato fijo 6-12 (6 semanas | 12 meses)", ratio=(2, 1))
-    with filters:
-        B.callout("<b>Datos sintéticos:</b> prototipo del formato con dos problemas plantados. No son hallazgos de "
-                  "Finora.", kind="warn")
+def weekly_review(T: B.Theme, channel_colors: dict, compact: bool = False) -> None:
+    aviso = "<b>Datos sintéticos:</b> prototipo del formato con dos problemas plantados. No son hallazgos de Finora."
+    if compact:
+        B.callout(aviso, kind="warn")
+    else:
+        filters = _page_header("Revisión semanal del funnel",
+                               "Para: CRO, líderes SDR y AE · Decide: qué entrada se salió de lo normal y quién actúa · "
+                               "Cadencia: semanal, 30 minutos · formato fijo 6-12 (6 semanas | 12 meses)", ratio=(2, 1))
+        with filters:
+            B.callout(aviso, kind="warn")
     leads, ev = _synthetic()
     as_of = pd.Timestamp("2024-10-31")
     r = F.reach_table(leads, ev)
@@ -375,7 +388,7 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
     name = {k: n for k, n, *_ in METRICS}
     meta = {k: (suf, sc) for k, _, _, suf, sc, _ in METRICS}
 
-    c1, c2 = st.columns([5, 7], gap="medium")
+    c1, c2 = (st.container(), st.container()) if compact else st.columns([5, 7], gap="medium")
     with c1:
         parts = [f"<p><b>Semana del {week.day} de {B.MESES[week.month - 1]} de {week.year} · qué cambió</b></p>"]
         if sig_k:
@@ -391,7 +404,7 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
                          "al AE.</p><p><b>Qué hacemos:</b> ruteo y primer contacto automático para leads de bajo ajuste, "
                          "SLA de 1 hora para los de alto ajuste, y revisar la meta de Paid Social por SQL, no por "
                          "leads.</p>")
-        B.callout("".join(parts))
+        B.callout("".join(parts), cols=2 if compact else 1)
     with c2:
         def node(k, label=None):
             st_ = state[k]
@@ -428,6 +441,15 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
                 reading = "<b>Lectura:</b> ninguna entrada salió de su rango normal; nada que ver aquí."
             st.markdown(f'<div class="hs-body" style="font:400 14px/22px var(--font-sans);margin:6px 0 2px">{reading}</div>'
                         f'<div class="da-source">{SRC_SYN}</div>', unsafe_allow_html=True)
+
+    stl = F.stalled(r, ev, as_of)
+    by_owner = stl.pivot_table(index="owner", columns="stage", values="lead_id", aggfunc="count", fill_value=0)
+    by_owner["Total"] = by_owner.sum(axis=1)
+    if compact:
+        B.table_frame("stalled", "", f"{B.es(len(stl), 0)} leads abiertos superan el P90 histórico de su etapa y camino",
+                      "Leads estancados por dueño y etapa: la lista que cada SDR y AE limpia esta semana",
+                      by_owner.sort_values("Total", ascending=False).head(6).reset_index(names="Dueño"), SRC_SYN)
+        return
 
     st.markdown('<div class="da-h3" style="margin-top:8px">Formato 6-12: últimas 6 semanas | últimos 12 meses</div>'
                 '<div class="da-sub">Formato fijo de la Weekly Business Review de Amazon: siempre las mismas métricas, en '
@@ -495,9 +517,6 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
                                   periodo=lambda d: d["periodo"].dt.date),
                               None, 190, ysuffix=suf, month_ticks=False)
 
-    stl = F.stalled(r, ev, as_of)
-    by_owner = stl.pivot_table(index="owner", columns="stage", values="lead_id", aggfunc="count", fill_value=0)
-    by_owner["Total"] = by_owner.sum(axis=1)
     c3, c4 = st.columns([5, 7], gap="medium")
     with c3:
         B.table_frame("stalled", "", f"{B.es(len(stl), 0)} leads abiertos superan el P90 histórico de su etapa y camino",
