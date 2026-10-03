@@ -120,10 +120,7 @@ if i == 0:
          "problema está después de SQL."),
     ])
     st.markdown('<div class="hs-note"><b>Con qué contamos:</b> caja por cliente y mes, industria y gasto de S&M; no hay '
-                'precio de lista, registro de descuentos ni eventos del funnel.<br><b>Una advertencia antes de decidir:</b> '
-                f'con las unidades del enunciado, cada peso de S&M devuelve entre {F_["magic_min"]} y {F_["magic_max"]} centavos '
-                'de ingreso recurrente nuevo; el mercado exige 75. Antes de cualquier decisión de inversión hay que confirmar '
-                'esas unidades con Finanzas.</div>', unsafe_allow_html=True)
+                'precio de lista, registro de descuentos ni eventos del funnel.</div>', unsafe_allow_html=True)
 
 elif i == 1:
     st.title(f"El modelo de caja exagera el churn {F_['x_churn']} veces")
@@ -140,15 +137,12 @@ elif i == 1:
     B.chart_frame("h_bridge", "",
                   f"El total cuadra, el porqué no: churn {F_['cor_churn']} MM real contra {F_['act_churn']} MM en caja",
                   "Movimientos de MRR acumulados por tipo · millones de COP · abr-2022 a oct-2024", fig, None, SRC_TX, 220)
-    demo = f'<a href="{C.LINKS["demo"]}?s=5">la demo</a>'
     st.markdown(
         '<div class="da-callout da-callout-info"><p><b>Cómo lo corrige el modelo</b></p><div class="hs-rules">'
         "<div><b>Un mes sin pago no es churn:</b> el cliente sigue activo hasta 2 meses en mora.</div>"
         "<div><b>Pagar lo atrasado no es expansión:</b> es cobro de mora.</div>"
         "<div><b>Un pago por adelantado se reparte</b> en los meses que cubre.</div>"
         "<div><b>Una subida de precio va aparte:</b> es decisión de Finora, no del cliente.</div></div>"
-        f'<p class="hs-rules-foot">La conclusión se sostiene al cambiar cada regla, una a la vez: el churn queda entre '
-        f"{F_['sens_xchurn_min']} y {F_['sens_xchurn_max']} veces exagerado. Reglas completas y sensibilidad en {demo}.</p>"
         "</div>", unsafe_allow_html=True)
 
 elif i == 2:
@@ -247,13 +241,4 @@ else:
          "Etapas con fecha y hora, canal, camino y dueño. Arranca la revisión semanal de 30 minutos con alertas "
          "estadísticas."),
     ])
-    c1, c2 = st.columns(2, gap="medium")
-    with c1:
-        B.callout("<p><b>Lo que pido hoy</b></p><ul><li>Registrar desde ya todo descuento nuevo con motivo, vigencia y "
-                  "aprobador.</li><li>Acceso a los datos de facturación y a los eventos del CRM.</li><li>Validar con "
-                  "Finanzas las unidades y el alcance del S&M.</li></ul>")
-    with c2:
-        B.callout("<p><b>Lo que no decidiría todavía</b></p><ul><li>Contratar SDR o recortar canales sin el funnel por "
-                  "eventos.</li><li>Mover el presupuesto de S&M sin confirmar sus unidades: con las del enunciado, cada "
-                  f"peso devuelve entre {F_['magic_min']} y {F_['magic_max']} centavos de ingreso nuevo.</li></ul>", kind="warn")
 pager()
