@@ -3,10 +3,9 @@ table FunnelXmR
 	lineageTag: 5ba32e5b-eed6-4b44-b85e-0cf39372f19f
 
 	measure 'F valor' = MAX(FunnelXmR[value]) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		formatString: #,0.0
 		displayFolder: Funnel
 		lineageTag: deb6fc4b-5e43-465b-b41b-e13ad314f89e
-
-		formatStringDefinition = SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "leads", "#,0", "new_customers", "#,0", "#,0.0")
 
 	measure 'F centro' = MAX(FunnelXmR[center]) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
 		formatString: #,0.0
@@ -35,16 +34,14 @@ table FunnelXmR
 
 	/// Valor de la métrica del contexto en la última semana con dato
 	measure 'F valor última semana' = VAR p = CALCULATE(MAX(FunnelXmR[period]), FunnelXmR[freq] = "W", NOT ISBLANK(FunnelXmR[value])) RETURN CALCULATE(MAX(FunnelXmR[value]), FunnelXmR[freq] = "W", FunnelXmR[period] = p) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		formatString: #,0.0
 		displayFolder: Funnel
 		lineageTag: 299a1f92-942a-4676-8e43-79356e5b57a1
 
-		formatStringDefinition = SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "leads", "#,0", "new_customers", "#,0", "new_mrr", "#,0.0\" MM\"", "speed_p50", "#,0.0\" h\"", "#,0.0\" %\"")
-
 	measure 'F centro última semana' = VAR p = CALCULATE(MAX(FunnelXmR[period]), FunnelXmR[freq] = "W", NOT ISBLANK(FunnelXmR[value])) RETURN CALCULATE(MAX(FunnelXmR[center]), FunnelXmR[freq] = "W", FunnelXmR[period] = p) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		formatString: #,0.0
 		displayFolder: Funnel
 		lineageTag: dc529d26-e00e-48f9-9972-036b23fbb370
-
-		formatStringDefinition = SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "leads", "#,0", "new_customers", "#,0", "#,0.0")
 
 	measure 'F estado última semana' = VAR p = CALCULATE(MAX(FunnelXmR[period]), FunnelXmR[freq] = "W", NOT ISBLANK(FunnelXmR[value])) VAR s = CALCULATE(COUNTROWS(FunnelXmR), FunnelXmR[freq] = "W", FunnelXmR[period] = p, FunnelXmR[signal] = TRUE()) VAR r = CALCULATE(MAX(FunnelXmR[reason]), FunnelXmR[freq] = "W", FunnelXmR[period] = p) VAR d = CALCULATE(MAX(FunnelXmR[direction]), FunnelXmR[freq] = "W", FunnelXmR[period] = p) RETURN IF(s > 0, "Señal: " & r & ", " & d & " de lo normal", "Dentro de lo normal")
 		displayFolder: Funnel
@@ -87,6 +84,11 @@ table FunnelXmR
 	measure 'F KPI pie' = VAR u = SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", " MM", "speed_p50", " h", "leads", "", "new_customers", "", " %") RETURN [F estado última semana] & " · lo normal: " & FORMAT([F centro última semana], "#,0.0") & u
 		displayFolder: Funnel
 		lineageTag: dba2b89a-0386-4d77-90b0-d45bcb32cdcb
+
+	/// Valor de la última semana con su unidad, como texto (tarjetas)
+	measure 'F KPI valor' = VAR m = SELECTEDVALUE(FunnelXmR[metric]) VAR v = [F valor última semana] RETURN SWITCH(m, "leads", FORMAT(v, "#,0"), "new_customers", FORMAT(v, "#,0"), "new_mrr", FORMAT(v, "#,0.0") & " MM", "speed_p50", FORMAT(v, "#,0.0") & " h", FORMAT(v, "#,0.0") & " %")
+		displayFolder: Funnel
+		lineageTag: 4a9beee1-a337-4323-bc71-c703cf4405a5
 
 	column freq
 		dataType: string

@@ -124,8 +124,7 @@ class Page:
              align="left", filters=None, wrap=False, color_=INK, font=FONT):
         objects = {
             "labels": [{"properties": {"fontSize": lit(size), "fontFamily": lit(font), "color": color(color_),
-                                       "wordWrap": lit(wrap), "alignment": lit(align), "labelDisplayUnits": lit(1),
-                                       "labelPrecision": lit(1)}}],
+                                       "wordWrap": lit(wrap), "alignment": lit(align)}}],
             "categoryLabels": [{"properties": {"show": lit(False)}}],
         }
         return self.add(key, "card", x, y, w, h, query={"Values": {"projections": [P(entity, measure)]}},
@@ -152,7 +151,8 @@ def xmr_lines(page: Page, key, x, y, w, h, entity, cat_entity, cat_prop, measure
               filters):
     objects = {
         "legend": [{"properties": {"show": lit(False)}}],
-        "categoryAxis": [{"properties": {"showAxisTitle": lit(False), "fontSize": lit(9), "fontFamily": lit(font_mono())}}],
+        "categoryAxis": [{"properties": {"showAxisTitle": lit(False), "fontSize": lit(9), "fontFamily": lit(font_mono()),
+                                         "axisType": lit("Scalar" if cat_prop in ("Date", "period") else "Categorical")}}],
         "valueAxis": [{"properties": {"showAxisTitle": lit(False), "fontSize": lit(9), "gridlineColor": color(LINE)}}],
         "dataPoint": [
             {"properties": {"fill": color(VIZ[0])}, "selector": {"metadata": f"{entity}.{measures[0]}"}},
@@ -201,10 +201,10 @@ def mensual(name: str) -> Page:
 
     kx = [24, 492, 960, 1428]
     kw = 444
-    kpis = [("KPI cierre título", "MRR cierre", "KPI cierre pie", MINT),
-            (None, "MRR neto nuevo", "KPI neto pie", SURFACE),
-            ("KPI churn título", "KPI churn valor", "KPI churn pie", SURFACE),
-            (None, "Clientes nuevos", "KPI nuevos pie", SURFACE)]
+    kpis = [("KPI cierre título", "KPI cierre valor", "KPI cierre pie", MINT),
+            (None, "KPI neto valor", "KPI neto pie", SURFACE),
+            ("KPI churn título", "KPI churn valor texto", "KPI churn pie", SURFACE),
+            (None, "KPI nuevos valor", "KPI nuevos pie", SURFACE)]
     static_titles = {1: "MRR NETO NUEVO DEL MES", 3: "CLIENTES NUEVOS"}
     for i, (tmeasure, vmeasure, foot, bg) in enumerate(kpis):
         x = kx[i]
@@ -244,12 +244,12 @@ def mensual(name: str) -> Page:
 
     pg.text("h_xmr", 24, 822, 1500, 44, [("Señal o ruido por movimiento · banda = rango normal (media ± 2,66 × rango móvil, fijada con los primeros 18 meses) · rombo = señal", 11, True, INK)])
     for i, (metric, label) in enumerate([("new", "Nuevos"), ("expansion", "Expansión"), ("contraction", "Contracción"), ("churn", "Churn")]):
-        no_filter(xmr_lines(pg, f"xmr_{metric}", kx[i], 870, kw, 300, "Puente", "Calendario", "Mes",
+        no_filter(xmr_lines(pg, f"xmr_{metric}", kx[i], 870, kw, 300, "Puente", "Calendario", "Date",
                             ["Valor XmR", "Centro XmR", "LCL XmR", "UCL XmR", "Señal XmR (punto)"], label, "MM COP por mes",
                             [cat_filter("XmR", "metric", [metric], f"f_{metric}")]))
 
     pg.text("h_sm", 24, 1190, 1500, 44, [("Eficiencia del S&M · unidades del enunciado, pendientes de confirmar con Finanzas · fuente: S&M_spend.csv", 11, True, INK)])
-    no_filter(xmr_lines(pg, "xmr_cac", 24, 1238, 912, 320, "Puente", "Calendario", "Mes",
+    no_filter(xmr_lines(pg, "xmr_cac", 24, 1238, 912, 320, "Puente", "Calendario", "Date",
                         ["Valor XmR", "Centro XmR", "LCL XmR", "UCL XmR", "Señal XmR (punto)"], "CAC variable, 3 meses móviles",
                         "MM por cliente nuevo · solo rubros de adquisición", [cat_filter("XmR", "metric", ["cac3_variable"], "f_cac")]))
     no_filter(pg.add("magic", "clusteredColumnChart", 960, 1238, 936, 320,
@@ -265,7 +265,7 @@ def mensual(name: str) -> Page:
            filters=[bool_filter("EficienciaSM", "complete", "f_complete")]))
 
     pg.add("reglas", "tableEx", 24, 1582, 1872, 300,
-           query={"Values": {"projections": [P("Reglas", "Métrica", measure=False), P("Reglas", "Dueño", measure=False),
+           query={"Values": {"projections": [P("Reglas", "Orden", measure=False, displayName="#"), P("Reglas", "Métrica", measure=False), P("Reglas", "Dueño", measure=False),
                                               P("Reglas", "Regla de alerta", measure=False), P("Reglas", "Acción", measure=False)]}},
            objects={"grid": [{"properties": {"gridVertical": lit(False), "gridHorizontal": lit(True), "gridHorizontalColor": color(LINE), "rowPadding": lit(6)}}],
                     "columnHeaders": [{"properties": {"fontSize": lit(9), "fontFamily": lit(font_mono()), "fontColor": color(MUTED), "backColor": color(SURFACE)}}],
@@ -283,7 +283,7 @@ KPIS = [("leads", "LEADS NUEVOS"), ("high_fit", "MEZCLA DE ALTO AJUSTE"), ("new_
 
 
 def semanal(name: str) -> Page:
-    pg = Page(name, "Semanal del funnel · CRO", 1920, 1700)
+    pg = Page(name, "Semanal del funnel · CRO", 1920, 1480)
     pg.text("titulo", 24, 12, 1300, 60, [("Revisión semanal del funnel", 18, True, INK)])
     pg.text("proposito", 24, 56, 1700, 44,
             [("Para: CRO, líderes SDR y AE · Decide: qué entrada se salió de lo normal y quién actúa · Cadencia: semanal, 30 minutos · formato fijo 6-12",

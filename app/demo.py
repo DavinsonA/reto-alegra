@@ -41,7 +41,7 @@ ny = C.new_by_year()
 if section == S_IA:
     st.title("Cómo trabajé con IA: preparar, explorar, proponer, revisar y comunicar")
     B.tags([("lavender", ["Claude Code", "Claude con búsqueda web", "skills: davinson-brand, dataviz, avoid-ai-design, grill-me"]),
-            ("mint", ["Python", "pandas", "SQL", "DuckDB", "Jupyter"]), ("peach", ["Streamlit", "Plotly"]),
+            ("mint", ["Python", "pandas", "SQL", "DuckDB", "Jupyter", "DAX"]), ("peach", ["Streamlit", "Plotly", "Power BI (PBIP)"]),
             ("", ["pytest", "Playwright", "Git", "GitHub Actions"])])
     ERRORS = pd.DataFrame([
         ("El motor leía un upgrade real (el cliente duplica su plan y se queda) como un pago agrupado",
@@ -107,7 +107,7 @@ if section == S_IA:
                       "revisión como evaluador exigente",
                       f"{C.N_TESTS} pruebas · 10 variantes sin cambio de signo · {len(ERRORS)} errores atrapados"),
                      ("5 · Comunicar",
-                      "Tres apps en Streamlit con Plotly, marca propia y capturas automáticas con Playwright",
+                      "Tres apps en Streamlit con Plotly, marca propia y capturas automáticas con Playwright; equivalente en Power BI autorado por MCP (modelo) y generado como PBIR (páginas)",
                       "Definí qué decisión apoya cada vista y revisé cada pantalla renderizada",
                       "Prueba automática de cada vista · paleta validada para daltonismo · apps despiertas con GitHub Actions"),
                  ], columns=["Fase", "Qué hizo la IA", "Qué decidí o revisé yo", "Evidencia"]))

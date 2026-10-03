@@ -4,7 +4,7 @@ Davinson Arteaga · octubre de 2026
 
 - Historia ejecutiva: https://finora-historia.streamlit.app/
 - Demo y proceso con IA: https://finora-demo.streamlit.app/
-- Tablero operativo: https://finora-tablero.streamlit.app/
+- Tablero operativo: https://finora-tablero.streamlit.app/ (y su equivalente en Power BI: `dashboard/equivalent_dashboard.pbip`, mismas tablas agregadas)
 - Repositorio: https://github.com/DavinsonA/reto-alegra
 - Respaldo si una app tarda en despertar: capturas de cada vista en `docs/capturas/`
 

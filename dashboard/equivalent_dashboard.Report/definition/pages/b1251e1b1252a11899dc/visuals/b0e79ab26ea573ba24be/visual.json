@@ -3,10 +3,10 @@
   "name": "b0e79ab26ea573ba24be",
   "position": {
     "x": 24,
-    "y": 16,
+    "y": 12,
     "z": 100,
     "width": 1300,
-    "height": 48,
+    "height": 60,
     "tabOrder": 100
   },
   "visual": {
@@ -22,7 +22,7 @@
                   {
                     "value": "Revisión semanal del funnel",
                     "textStyle": {
-                      "fontSize": "20pt",
+                      "fontSize": "18pt",
                       "fontWeight": "bold",
                       "fontFamily": "Segoe UI",
                       "color": "#11151A"

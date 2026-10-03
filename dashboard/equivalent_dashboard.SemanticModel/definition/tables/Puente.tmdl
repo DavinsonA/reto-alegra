@@ -278,6 +278,22 @@ table Puente
 		displayFolder: Movimientos
 		lineageTag: 44c9d98d-fed3-4f3b-8237-583bd37fef8a
 
+	measure 'KPI cierre valor' = FORMAT([MRR cierre] / 1e6, "#,0.0") & " MM"
+		displayFolder: KPI
+		lineageTag: e638274d-56e3-46b1-8870-973262e3170e
+
+	measure 'KPI neto valor' = FORMAT([MRR neto nuevo] / 1e6, "+#,0.0;-#,0.0;0,0") & " MM"
+		displayFolder: KPI
+		lineageTag: 0412e18d-a16c-4446-bbe3-7d88949c5095
+
+	measure 'KPI churn valor texto' = FORMAT([KPI churn valor] / 1e6, "#,0.0") & " MM"
+		displayFolder: KPI
+		lineageTag: 37bd7d4d-cfc6-4fbd-8ad6-b023cfe0d1f0
+
+	measure 'KPI nuevos valor' = FORMAT([Clientes nuevos], "#,0")
+		displayFolder: KPI
+		lineageTag: a0480051-1ca9-4ce1-8bea-8151774752cb
+
 	column month
 		dataType: string
 		lineageTag: 77874983-688f-4541-968c-9104308ce053

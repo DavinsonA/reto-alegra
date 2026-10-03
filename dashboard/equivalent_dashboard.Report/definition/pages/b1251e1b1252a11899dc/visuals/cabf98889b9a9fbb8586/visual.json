@@ -24,11 +24,11 @@
                       "Entity": "FunnelXmR"
                     }
                   },
-                  "Property": "F valor última semana"
+                  "Property": "F KPI valor"
                 }
               },
-              "queryRef": "FunnelXmR.F valor última semana",
-              "nativeQueryRef": "F valor última semana"
+              "queryRef": "FunnelXmR.F KPI valor",
+              "nativeQueryRef": "F KPI valor"
             }
           ]
         }
@@ -74,20 +74,6 @@
               "expr": {
                 "Literal": {
                   "Value": "'left'"
-                }
-              }
-            },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
-                }
-              }
-            },
-            "labelPrecision": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
                 }
               }
             }

@@ -11,6 +11,7 @@ Tres apps, una por uso, sobre el mismo motor y las mismas tablas agregadas:
 | **Historia ejecutiva** (`app/historia.py`) | Video 1: las dos preguntas; el CFO (negocio subyacente, descuentos en dos capas, revisión mensual); el CRO (clientes ganados, revisión semanal); qué pido y plan a 90 días | [finora-historia](https://finora-historia.streamlit.app/) |
 | **Demo y proceso con IA** (`app/demo.py`) | Video 2: cómo trabajé con IA y el análisis completo de los dos casos | [finora-demo](https://finora-demo.streamlit.app/) |
 | **Tablero operativo** (`app/tablero.py`) | Revisiones futuras: mensual del MRR (CFO) y semanal del funnel (CRO) | [finora-tablero](https://finora-tablero.streamlit.app/) |
+| **Equivalente en Power BI** (`dashboard/equivalent_dashboard.pbip`) | Las mismas dos revisiones en Power BI Desktop: modelo TMDL (13 tablas, 76 medidas DAX) y reporte PBIR generado por `dashboard/build_report.py` sobre los mismos agregados | capturas en `docs/capturas/` |
 
 Si una app tarda en despertar (el plan gratuito de Streamlit las suspende sin tráfico), hay capturas de cada vista en
 [`docs/capturas/`](docs/capturas/).
@@ -39,6 +40,7 @@ finora/      motor: carga y unidades (load), modelo actual vs. corregido (mrr), 
 sql/         el mismo análisis en DuckDB/Postgres y el DDL del modelo de dos capas
 tests/       {{n_pruebas}} pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
 app/         las tres apps en Streamlit (historia, demo, tablero) sobre app/data/, solo agregados
+dashboard/   equivalente del tablero en Power BI (PBIP: modelo TMDL + reporte PBIR) y el generador del reporte
 docs/        modelo de datos, diseño del tablero, plantillas de los documentos y capturas
 notebooks/   5 notebooks con salidas: del perfilado a las conclusiones (notebooks/README.md)
 pipeline.py  corre todo, regenera app/data/ y genera README, HALLAZGOS y NOTA_CORTA desde docs/plantillas/
@@ -57,6 +59,8 @@ python pipeline.py                 # regenera app/data/ y los documentos con sus
 pytest -q                          # {{n_pruebas}} pruebas
 streamlit run app/historia.py      # o app/demo.py, o app/tablero.py
 ```
+
+**Power BI:** abrir `dashboard/equivalent_dashboard.pbip` en Power BI Desktop (2.158 o posterior); el parámetro `RutaDatos` apunta a `app/data/`. El modelo se autoró con el Power BI Authoring MCP y las páginas con `python dashboard/build_report.py`.
 
 **Actualizar el tablero cada mes:** agregar el mes nuevo a los CSV de `data/`, correr `python pipeline.py` y `pytest -q`, y hacer push. Las apps se actualizan solas.
 

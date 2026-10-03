@@ -24,11 +24,11 @@
                       "Entity": "Puente"
                     }
                   },
-                  "Property": "Clientes nuevos"
+                  "Property": "KPI nuevos valor"
                 }
               },
-              "queryRef": "Puente.Clientes nuevos",
-              "nativeQueryRef": "Clientes nuevos"
+              "queryRef": "Puente.KPI nuevos valor",
+              "nativeQueryRef": "KPI nuevos valor"
             }
           ]
         }
@@ -74,20 +74,6 @@
               "expr": {
                 "Literal": {
                   "Value": "'left'"
-                }
-              }
-            },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
-                }
-              }
-            },
-            "labelPrecision": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
                 }
               }
             }

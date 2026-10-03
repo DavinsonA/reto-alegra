@@ -8,3 +8,5 @@ __pycache__/
 # documentos internos del proceso de selección (no se publican)
 /ENUNCIADO.md
 /CONTEXTO.md
+# estado local de Power BI Desktop (caché y ajustes del equipo)
+dashboard/**/.pbi/

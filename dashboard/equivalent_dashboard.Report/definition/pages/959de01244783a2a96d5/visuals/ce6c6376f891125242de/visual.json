@@ -24,6 +24,21 @@
                       "Entity": "Reglas"
                     }
                   },
+                  "Property": "Orden"
+                }
+              },
+              "queryRef": "Reglas.Orden",
+              "nativeQueryRef": "Orden",
+              "displayName": "#"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reglas"
+                    }
+                  },
                   "Property": "Métrica"
                 }
               },

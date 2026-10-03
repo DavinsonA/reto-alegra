@@ -4,7 +4,7 @@ Davinson Arteaga · octubre de 2026
 
 - Historia ejecutiva: https://finora-historia.streamlit.app/
 - Demo y proceso con IA: https://finora-demo.streamlit.app/
-- Tablero operativo: https://finora-tablero.streamlit.app/
+- Tablero operativo: https://finora-tablero.streamlit.app/ (y su equivalente en Power BI: `dashboard/equivalent_dashboard.pbip`, mismas tablas agregadas)
 - Repositorio: https://github.com/DavinsonA/reto-alegra
 - Respaldo si una app tarda en despertar: capturas de cada vista en `docs/capturas/`
 
@@ -65,7 +65,7 @@ la empresa (cobro, precios, descuentos, canales), y separar las dos cosas cambia
   - **Claude Code** para perfilar los datos y escribir el motor de MRR, el SQL y las apps.
   - Yo definí las preguntas, las reglas y las decisiones, y revisé cada resultado.
 - **Qué validé:**
-  - 62 pruebas automáticas: los casos del CFO, la conciliación del puente mes a mes y cada vista de las 3 apps.
+  - 65 pruebas automáticas: los casos del CFO, la conciliación del puente mes a mes y cada vista de las 3 apps.
   - **El mismo cálculo en SQL y en Python, con el mismo resultado.**
   - **Sensibilidad por regla, una a la vez (10 variantes): ninguna cambia el signo ni el orden de magnitud.** El churn corregido va de −15,7 a −27,6 MM, contra −72,9 MM en el modelo actual.
   - Revisión manual de las series de 11 clientes y revisión visual de cada vista.

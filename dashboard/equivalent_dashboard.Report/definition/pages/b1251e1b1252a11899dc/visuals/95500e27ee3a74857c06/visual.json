@@ -151,6 +151,13 @@
                   "Value": "'Consolas'"
                 }
               }
+            },
+            "axisType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Scalar'"
+                }
+              }
             }
           }
         }
@@ -230,7 +237,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#E3E7EC'"
+                      "Value": "'#8A9299'"
                     }
                   }
                 }
@@ -248,7 +255,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#E3E7EC'"
+                      "Value": "'#8A9299'"
                     }
                   }
                 }
@@ -322,6 +329,13 @@
                   "Value": "1D"
                 }
               }
+            },
+            "lineStyle": {
+              "expr": {
+                "Literal": {
+                  "Value": "'dotted'"
+                }
+              }
             }
           },
           "selector": {
@@ -334,6 +348,13 @@
               "expr": {
                 "Literal": {
                   "Value": "1D"
+                }
+              }
+            },
+            "lineStyle": {
+              "expr": {
+                "Literal": {
+                  "Value": "'dotted'"
                 }
               }
             }
@@ -735,7 +756,7 @@
                   },
                   "Right": {
                     "Literal": {
-                      "Value": "datetime'2024-09-09T00:00:00'"
+                      "Value": "datetime'2024-07-22T00:00:00'"
                     }
                   }
                 }

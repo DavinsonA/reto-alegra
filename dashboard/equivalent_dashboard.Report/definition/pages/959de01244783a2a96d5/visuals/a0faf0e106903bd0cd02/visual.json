@@ -24,11 +24,11 @@
                       "Entity": "Puente"
                     }
                   },
-                  "Property": "KPI churn valor"
+                  "Property": "KPI churn valor texto"
                 }
               },
-              "queryRef": "Puente.KPI churn valor",
-              "nativeQueryRef": "KPI churn valor"
+              "queryRef": "Puente.KPI churn valor texto",
+              "nativeQueryRef": "KPI churn valor texto"
             }
           ]
         }
@@ -74,20 +74,6 @@
               "expr": {
                 "Literal": {
                   "Value": "'left'"
-                }
-              }
-            },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
-                }
-              }
-            },
-            "labelPrecision": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
                 }
               }
             }
