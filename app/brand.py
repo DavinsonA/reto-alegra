@@ -310,9 +310,9 @@ def _head(overline: str, title: str, subtitle: str) -> str:
 
 def chart_frame(key: str, overline: str, title: str, subtitle: str, fig: go.Figure, data: pd.DataFrame | None = None,
                 source: str | None = "Fuente: Transactions.csv, agregado · corte oct-2024", height: int = 360,
-                ysuffix: str | None = None, right: int = 16, month_ticks: bool | str = True) -> None:
+                ysuffix: str | None = None, right: int = 16, month_ticks: bool | str = True, plain: bool = False) -> None:
     """ChartFrame: título que enuncia el hallazgo + qué se mide + gráfico + Ver datos + fuente (omitible si es común)."""
-    with st.container(border=True, key=f"frame_{key}"):
+    with st.container(border=not plain, key=f"{'mini' if plain else 'frame'}_{key}"):
         st.markdown(_head(overline, title, subtitle), unsafe_allow_html=True)
         st.plotly_chart(style(fig, height, ysuffix, right, month_ticks), width="stretch",
                         config={"displayModeBar": False}, key=f"chart_{key}")

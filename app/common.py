@@ -130,6 +130,11 @@ _BI_CSS = """<style>
 .da-bar-sub, .da-bar-meta { font:400 13px/20px var(--font-sans); color:var(--ink-muted); }
 .da-bar-meta { text-align:right; }
 .da-bar-rule { border-top:1px solid var(--line-strong); margin:4px 0 16px; }
+.stApp { background-image:none !important; }
+.da-status { font:500 15px/24px var(--font-sans); color:var(--ink); margin:-4px 0 12px; padding:6px 12px; border-left:3px solid var(--line-strong); }
+.da-status.warn { border-left-color:var(--warning); background:var(--warning-soft); }
+.da-foot { font:400 12px/16px var(--font-mono); color:var(--ink-muted); margin:20px 0 0; border-top:1px solid var(--line); padding-top:8px; }
+[class*="st-key-mini"] { border-top:1px solid var(--line-strong); padding:8px 0 0; }
 </style>"""
 
 

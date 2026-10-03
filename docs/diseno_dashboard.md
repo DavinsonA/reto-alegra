@@ -37,33 +37,19 @@ Tres apps, una por **uso**, sobre el mismo motor y las mismas tablas agregadas (
 
 El tablero usa una distribución **horizontal, como una herramienta BI**: lienzo ancho con la barra lateral plegada; barra superior con las páginas (mensual y semanal) y el corte de datos; en cada página, el filtro arriba a la derecha, una franja de KPI, una fila de análisis con gráfico, tabla y lectura lado a lado, y los pequeños múltiplos en rejilla (4 por fila). Lo que se consulta menos (dueños y reglas del CFO) queda plegado. Las tres apps usan solo el tema claro.
 
-### 3.1 Revisión mensual del MRR (CFO)
-Primero lo que se lee arriba del pliegue:
-1. **Selector de mes de cierre** (por defecto, el último).
-2. **Recuadro "Qué cambió · por qué · qué hacemos"**, generado a partir de las señales del mes.
-3. **4 KPI con contexto:**
-   - MRR de cierre.
-   - MRR neto nuevo.
-   - Churn del mes.
-   - Clientes nuevos.
-   - Cada uno con: vs. mes anterior, vs. hace 12 meses y **estado XmR** ("dentro de lo normal" o "señal", siempre con la palabra, no solo el color).
-4. **Puente del mes:** apertura → nuevos → expansión → subida de precio → reactivación → contracción → churn → cierre. Debajo, la tabla de **monto y número de clientes** por movimiento.
-5. **¿Señal o ruido?:** gráficos pequeños XmR por movimiento (nuevos, expansión, contracción, churn), 31 meses, con límites naturales calculados sobre una línea base de 18 meses.
-6. **Dueños y reglas:** tabla métrica → dueño → regla de alerta → acción.
+### 2.1 Revisión mensual del MRR (CFO)
+Regla 3-30-300: lo que se lee en 3 segundos arriba, lo que explica en 30 en una sola fila, lo que investiga en 300 plegado.
+1. **Línea de estado:** número de señales, mora como % del MRR (regla activa si supera el 3 %) y dueños que actúan.
+2. **4 KPI con contexto:** MRR de cierre, MRR neto nuevo, churn del mes (o en confirmación) y clientes nuevos; cada uno con vs. mes anterior, vs. hace 12 meses y estado XmR con palabra.
+3. **Una fila:** puente del mes en dos capas (cliente → subtotal → precio → neto; descuentos "sin dato") y la lectura "qué cambió · en confirmación · señales y acción". La tabla de movimientos (monto, clientes, promedio de 12 meses) vive en "Ver datos".
+4. **Plegado:** señal o ruido por movimiento (4 XmR), eficiencia del S&M (CAC variable y magic number) y dueños, reglas y acciones.
 
-Al final de la vista: **Comportamiento del cliente vs. pricing vs. descuentos** del mes (descuentos = "sin dato: instrumentar").
-
-### 3.2 Revisión semanal del funnel (CRO, prototipo sintético)
-1. **Recuadro "Qué cambió"** a partir de las señales de la semana.
-2. **Árbol de métricas:**
-   - Salida: MRR nuevo = clientes nuevos × ticket.
-   - Clientes nuevos = leads × conversión por camino.
-   - Entradas controlables: speed-to-lead (SLA de 1 hora), mezcla de canal (% de leads de alto ajuste), Working → Engaged, win rate post-SQL.
-   - Cada nodo con valor, variación y estado.
-3. **Formato 6-12** para 4 entradas y 1 salida: últimas 6 semanas | últimos 12 meses, con límites XmR. Siempre el mismo orden, colores y escala.
-4. **Diagnóstico** (cuando hay señal): mezcla vs. tasa por canal.
-5. **Lista operativa:** leads estancados por etapa y owner (> P90).
-6. **Dueños y reglas.**
+### 2.2 Revisión semanal del funnel (CRO, prototipo sintético)
+1. **Aviso de sintético** y **línea de estado:** semana, entradas en señal y dónde (antes o después de SQL), leads estancados.
+2. **4 KPI:** leads nuevos, mezcla de alto ajuste, clientes nuevos y MRR nuevo, con estado XmR.
+3. **Una fila:** árbol de métricas (entradas controlables → conversión → clientes nuevos → MRR nuevo) y la lectura "qué cambió · por qué (mezcla frente a tasa en una frase) · qué hacemos".
+4. **Formato 6-12 fijo** de las cuatro entradas que el equipo controla: speed-to-lead P50, contactados en menos de 1 hora, Working → Engaged y SQL → Won. Siempre las mismas, en el mismo orden.
+5. **Estancados:** los 5 dueños con más leads; el resto, plegado. Reglas, volumen y salida en 6-12 y mezcla por canal, plegados.
 
 ## 3. Reglas de diseño (se mantienen)
 - Título = hallazgo; subtítulo = qué, unidad y periodo; "Ver datos"; fuente y fecha de corte.
