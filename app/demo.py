@@ -39,9 +39,10 @@ ta, tc = bridge_totals(ACT), bridge_totals(COR)
 ny = C.new_by_year()
 
 if section == S_IA:
-    st.title("Cómo trabajé con IA: la IA propone y escribe; yo defino las reglas y verifico")
-    B.tags([("mint", ["Python", "SQL", "DuckDB", "pandas"]), ("lavender", ["Claude Code", "Claude con búsqueda web"]),
-            ("peach", ["Plotly", "Streamlit"]), ("", ["pytest", "Playwright", "Git"])])
+    st.title("Cómo trabajé con IA: preparar, explorar, proponer, revisar y comunicar")
+    B.tags([("lavender", ["Claude Code", "Claude con búsqueda web", "skills: davinson-brand, dataviz, avoid-ai-design, grill-me"]),
+            ("mint", ["Python", "pandas", "SQL", "DuckDB", "Jupyter"]), ("peach", ["Streamlit", "Plotly"]),
+            ("", ["pytest", "Playwright", "Git", "GitHub Actions"])])
     ERRORS = pd.DataFrame([
         ("El motor leía un upgrade real (el cliente duplica su plan y se queda) como un pago agrupado",
          "Revisión de la regla contra series reales", "Condición «el monto alto no se mantiene» y una prueba nueva"),
@@ -75,50 +76,88 @@ if section == S_IA:
          "La prueba falló contra el motor", "Corregí la prueba, no el motor: con N = 2 es mora abierta"),
     ], columns=["Error", "Cómo lo detecté", "Corrección"])
     B.kpi_row([
-        dict(overline="Pruebas automáticas", value=str(C.N_TESTS), pastel=True, foot="motor, dos capas, SQL, XmR y las 3 apps"),
-        dict(overline="Doble cálculo", value="SQL = Python", foot="el mismo puente mes a mes, por dos vías"),
+        dict(overline="Pruebas automáticas", value=str(C.N_TESTS), pastel=True, foot="motor, dos capas, SQL, XmR, S&M, documentos y las 3 apps"),
+        dict(overline="Doble cálculo", value="SQL = Python", foot="puente del modelo actual y casos de dos capas, por dos vías"),
         dict(overline="Revisión manual", value="11 clientes", foot="series reales leídas una a una"),
         dict(overline="Errores atrapados", value=str(len(ERRORS)), foot="antes de llegar a una cifra final"),
     ])
-    B.text_frame("ia_steps", "", "Siete pasos: en cada uno, qué hizo la IA y qué hice yo",
-                  "La IA acelera la exploración y el código; las reglas de negocio y la verificación son mías",
-                  pd.DataFrame([
-                      ("1 · Entender y priorizar", "Claude con búsqueda web resumió el enunciado e investigó buenas "
-                       "prácticas con fuentes "
-                       "(MRR con descuentos, funnel híbrido, speed-to-lead)", "Prioricé al CFO: sin un MRR confiable, "
-                       "el análisis del funnel hereda el error", "Fuentes enlazadas y contrastadas; descarté una cifra "
-                       "sin fuente rastreable"),
-                      ("2 · Perfilar los datos", "Scripts de perfilado de los 3 CSV", "Leí a mano las series de 11 "
-                       "clientes y formulé los patrones: mora, puestas al día, retroactivo de precio", "Aritmética: las "
-                       "puestas al día son múltiplos exactos del monto; el retroactivo sigue L(1 + k·p)"),
-                      ("3 · Definir las reglas", "Propuso alternativas y la práctica de mercado (ChartMogul, dbt)",
-                       "Decidí las reglas (mora N = 2, prepagos, precio aparte) y las dejé escritas como supuestos",
-                       "Sensibilidad: con N = 1, 2 y 3 la conclusión no cambia"),
-                      ("4 · Construir el motor", "Escribió el motor de MRR (actual vs. corregido) y el modelo de dos "
-                       "capas", "Escribí los casos con respuesta conocida: las 3 preguntas del CFO, mora, prepagos y "
-                       "bordes", "Pruebas con respuesta conocida; conciliación mes a mes: la suma de movimientos = cambio del MRR"),
-                      ("5 · Validar por otra vía", "Escribió el mismo cálculo en SQL (DuckDB)", "Exigí que SQL y Python "
-                       "coincidieran antes de usar una cifra", "3 pruebas SQL = Python, mes a mes"),
-                      ("6 · Funnel sin datos", "Generador sintético y métricas del funnel", "Diseñé 2 problemas "
-                       "plantados y una hipótesis que debía salir descartada (post-SQL)", "Las métricas detectan los 2 "
-                       "problemas y descartan el tercero"),
-                      ("7 · Comunicar", "Apps en Streamlit, marca y gráficos", "Definí qué decisión apoya cada vista y "
-                       "revisé cada pantalla en modo claro y oscuro", "Prueba automática de cada vista; paleta validada; "
-                       "capturas con Playwright"),
-                  ], columns=["Paso", "Qué hizo la IA", "Qué decidí o revisé yo", "Cómo lo verifiqué"]))
+    B.text_frame("ia_steps", "", "Cinco fases: en cada una, qué hizo la IA y qué hice yo",
+                 "La IA acelera la investigación, la exploración y el código; las preguntas, las reglas y la verificación son mías",
+                 pd.DataFrame([
+                     ("1 · Preparar con Claude Code",
+                      "Resumió el enunciado, investigó buenas prácticas con 58 fuentes y dejó la documentación de trabajo "
+                      "(contexto del reto y bitácora AI_LOG)",
+                      "Ronda inicial de preguntas: unidades de los CSV, plazo en días calendario, repositorio público o privado, "
+                      "funnel sin datos, Streamlit en vez de Power BI, prototipo sintético rotulado",
+                      "research/reto-tecnico.md · AI_LOG.md · skills de marca, visualización, revisión de diseño y grill-me (interrogar el plan)"),
+                     ("2 · Explorar en notebooks",
+                      "Perfiló los 3 CSV y escribió 5 notebooks, del perfilado a las conclusiones, guardados con sus salidas",
+                      "Leí a mano las series de 11 clientes y formulé los patrones: mora y puestas al día, retroactivo "
+                      "1 + k·p, bajadas a la mitad; fijé el supuesto cero (0 = no se cobró)",
+                      "notebooks/01 a 05 · cada uno recalcula sus cifras y falla si no coinciden con key_figures.csv"),
+                     ("3 · Proponer por caso",
+                      "Propuso alternativas y la práctica de mercado (ChartMogul, dbt, Stripe) y escribió el motor de MRR, el "
+                      "modelo de dos capas, el diseño del funnel y las métricas de eficiencia del S&M",
+                      "Decidí las reglas (mora N = 2, prepagos, precio aparte, dos capas), prioricé al CFO porque el funnel "
+                      "hereda el error del MRR, y dejé escrito lo que no se puede concluir",
+                      "Casos con respuesta conocida: las 3 preguntas del CFO, mora, prepagos y bordes"),
+                     ("4 · Revisar el modelo",
+                      "Escribió el puente del modelo actual y los casos de dos capas en SQL (DuckDB) y la sensibilidad por regla",
+                      "Exigí SQL = Python, apagué cada regla una a la vez y pedí a otra sesión de Claude, con la skill grill-me, una "
+                      "revisión como evaluador exigente",
+                      f"{C.N_TESTS} pruebas · 10 variantes sin cambio de signo · {len(ERRORS)} errores atrapados"),
+                     ("5 · Comunicar",
+                      "Tres apps en Streamlit con Plotly, marca propia y capturas automáticas con Playwright",
+                      "Definí qué decisión apoya cada vista y revisé cada pantalla renderizada",
+                      "Prueba automática de cada vista · paleta validada para daltonismo · apps despiertas con GitHub Actions"),
+                 ], columns=["Fase", "Qué hizo la IA", "Qué decidí o revisé yo", "Evidencia"]))
+    B.text_frame("ia_refs", "", "Lo que dijeron las referencias y qué decidí con cada una",
+                 "De la investigación previa (58 fuentes) a las reglas del modelo; donde me aparto del mercado, queda documentado",
+                 pd.DataFrame([
+                     ("ChartMogul · movimientos de MRR y mora",
+                      "Aplicar un descuento es contracción y su fin, expansión; las suscripciones en mora siguen en el MRR hasta cancelarse",
+                      "Adopto la mora tolerada (N = 2). Me aparto en descuentos: su fin va en la capa de pricing"),
+                     ("dbt · MRR playbook",
+                      "Malla de fechas con lag() para capturar churn y reactivación",
+                      "La malla cliente × mes del CSV se usa tal cual; un 0 es «no se cobró»"),
+                     ("Stripe, Baremetrics, ProfitWell",
+                      "No hay un estándar: cada herramienta resta los descuentos de forma distinta",
+                      "Net MRR como cifra oficial; list MRR y descuentos como capa analítica"),
+                     ("Austin Yang · SaaSHero",
+                      "La conversión de foto mezcla cohortes y cae mecánicamente cuando sube el volumen",
+                      "Conversión por cohorte de creación con ventana fija; cohortes inmaduras aparte"),
+                     ("Kitagawa · Das Gupta",
+                      "Δ de una tasa = efecto mezcla + efecto tasa",
+                      "Mezcla vs. tasa por industria (datos reales) y por canal (diseño del funnel)"),
+                     ("HBR · Oldroyd et al., 2011",
+                      "Contactar en la primera hora: casi 7 veces más probabilidad de calificar el lead",
+                      "Speed-to-lead y SLA de 1 hora como entrada controlable del CRO"),
+                     ("Winning by Design · bowtie",
+                      "Volumen, conversión y tiempo por etapa; una sola fuente de verdad",
+                      "Tres caminos (self-serve, directo a SQL, SDR) sobre un modelo de eventos"),
+                     ("Commoncog · WBR de Amazon y Wheeler",
+                      "Dueños, formato fijo 6-12, límites XmR y «nada que ver aquí»",
+                      "Revisión mensual y semanal con señal frente a ruido, dueño, regla y acción"),
+                     ("Stephen Few",
+                      "Monitorear de un vistazo; un número sin contexto no dice nada",
+                      "4 KPI por fila con vs. mes anterior y hace 12 meses, y estado con palabra"),
+                     ("Scale Venture Partners · a16z",
+                      "Magic number: 0,75 para escalar; el CAC combinado no dice qué canal funciona",
+                      "Magic number y payback por cohorte como métricas nuevas; sin conclusión por canal"),
+                 ], columns=["Fuente", "Qué dice", "Qué decidí"]))
     B.text_frame("ia_errors", "", f"{len(ERRORS)} errores atrapados antes de llegar a una cifra final",
-                  "Errores de la IA y míos, cómo los detecté y qué cambió", ERRORS)
+                 "Errores de la IA y míos, cómo los detecté y qué cambió", ERRORS)
     c1, c2 = st.columns(2, gap="medium")
     c1.subheader("Reglas que seguí")
     c1.markdown("- Las reglas de negocio las decido yo y quedan escritas como supuestos.\n"
-                "- Ninguna cifra sale del chat: sale de código con prueba.\n"
+                "- Ninguna cifra sale del chat: sale de código con prueba, y los notebooks la recalculan.\n"
                 "- Lo crítico se calcula dos veces, por dos vías.\n"
                 "- Cada pantalla se renderiza y se mira antes de darla por buena.")
     c2.subheader("Datos")
     c2.markdown("- Las apps públicas solo usan tablas agregadas; el exportador falla si alguna trae `customer_id`.\n"
                 "- Los CSV originales no están en el repositorio.\n"
                 "- El funnel es sintético y está rotulado en cada gráfico.")
-    st.caption("Bitácora completa (AI_LOG.md), código y pruebas en el repositorio.")
+    st.caption("Bitácora completa (AI_LOG.md), investigación (research/reto-tecnico.md), notebooks, código y pruebas en el repositorio.")
 
 elif section == S_CFO:
     st.title("¿Por qué cambió nuestro MRR?")
@@ -546,28 +585,73 @@ elif section == S_SM:
                   "Gasto de Sales & Marketing por rubro · millones de COP · Otros = viajes, freelance y software",
                   f, (sm[["month"] + items].set_index("month") / 1e6).round(1).reset_index(), "Fuente: S&M_spend.csv · corte oct-2024",
                   380, ysuffix=" MM")
-    cac = load("cac_quarterly")
-    cac = cac[cac["quarter"] >= "2022Q2"]
+    F_ = C.FIGURES
+    eff = load("sm_efficiency_quarterly")
+    eff = eff[eff["complete"] & (eff["quarter"] >= "2022Q2")]
+    pb = load("cohort_payback_quarterly")
+    pb = pb[pb["mature"] & (pb["cohort"] >= "2022Q2")]
+    B.kpi_row([
+        dict(overline="Magic number trimestral", value=f"0,{int(F_['magic_min']):02d} a 0,{int(F_['magic_max']):02d}", pastel=True,
+             foot=f"{F_['magic_min']} a {F_['magic_max']} centavos de ARR nuevo por peso de S&M del trimestre anterior · referencia: 0,75"),
+        dict(overline="Payback realizado a 24 meses", value=f"{F_['pb24_min']} a {F_['pb24_max']} %",
+             foot=f"del S&M del trimestre devuelto por sus cohortes ({F_['pb24_n']} cohortes con 24 meses) · mercado: 100 % en 8 a 16 meses"),
+        dict(overline="CAC variable", value=f"{F_['cac_var_min']} a {F_['cac_var_max']}",
+             foot=f"solo rubros de adquisición ({F_['sm_var_pct']} % del S&M) · MM por cliente nuevo y trimestre"),
+        dict(overline="Si las unidades fueran 10× menores", value=f"{F_['magic_x10_min']} a {F_['magic_x10_max']}",
+             foot="el magic number quedaría en rango normal: la pregunta de unidades decide la lectura"),
+    ])
     c1, c2 = st.columns(2, gap="medium")
     with c1:
-        f2 = go.Figure(go.Bar(x=[B.quarter_label(q) for q in cac["quarter"]], y=cac["cac_cop"] / 1e6, marker_color=T.viz[0],
-                              hovertemplate="%{x}: %{y:.1f} MM por cliente<extra></extra>"))
-        B.chart_frame("cac", "", "El costo por cliente nuevo bajó de 13 a 2-4 MM",
-                      "CAC combinado: S&M ÷ clientes nuevos por trimestre · millones de COP", f2,
-                      cac[["quarter", "new_customers"]].assign(cac_MM=(cac["cac_cop"] / 1e6).round(2)),
-                      "Fuente: S&M_spend.csv y Transactions.csv (agregado)", 320, ysuffix=" MM")
+        f2 = go.Figure()
+        f2.add_bar(x=[B.quarter_label(q) for q in eff["quarter"]], y=eff["magic_number"], name="Magic number",
+                   marker_color=T.viz[0], hovertemplate="%{x}: %{y:.2f}<extra></extra>")
+        f2.add_hline(y=0.75, line_color=T.ink, line_width=1, annotation_text="0,75 · escalar", annotation_position="top left")
+        f2.add_hline(y=0.5, line_color=T.line_strong, line_width=1, line_dash="dot", annotation_text="0,5 · revisar",
+                     annotation_position="bottom left")
+        B.chart_frame("magic", "", "Cada peso de S&M devuelve centavos de ARR nuevo; el mercado exige 0,75",
+                      "Magic number = ΔARR del trimestre ÷ S&M del trimestre anterior · trimestres completos", f2,
+                      eff[["quarter", "sm_cop", "delta_arr_cop", "magic_number", "magic_number_new_only"]].assign(
+                          sm_cop=lambda d: (d["sm_cop"] / 1e6).round(0), delta_arr_cop=lambda d: (d["delta_arr_cop"] / 1e6).round(0)).round(2),
+                      "Fuente: S&M_spend.csv y Transactions.csv (agregado)", 320, month_ticks=False)
     with c2:
-        f3 = go.Figure(go.Bar(x=[B.quarter_label(q) for q in cac["quarter"]], y=cac["payback_months_no_margin"], marker_color=T.viz[0],
-                              hovertemplate="%{x}: %{y:.0f} meses<extra></extra>"))
-        B.chart_frame("payback", "", "Recuperar el CAC toma más de 4 años con estas unidades",
-                      "Meses para recuperar el CAC, sin margen bruto", f3,
-                      cac[["quarter"]].assign(meses=cac["payback_months_no_margin"].round(0)),
-                      "Fuente: S&M_spend.csv y Transactions.csv (agregado)", 320)
-    st.markdown("- El S&M cayó a la mitad en el segundo semestre de 2023 y **los clientes nuevos subieron**: no hay "
-                "evidencia agregada de que más gasto traiga más clientes (correlación en diferencias cercana a 0).\n"
-                "- Con estas unidades, el **S&M mensual equivale a unas 2 veces el MRR total**: o la eficiencia es el "
-                "problema principal, o hay que revisar las unidades o el alcance del S&M. **Es una pregunta para "
-                "Finanzas, no una conclusión.**")
+        f3 = go.Figure()
+        cohorts = sorted(pb["cohort"].unique())
+        full = set(pb.loc[pb["age"] == 24, "cohort"])
+        for k, coh in enumerate(cohorts):
+            s = pb[pb["cohort"] == coh]
+            f3.add_scatter(x=s["age"], y=s["recovered"] * 100, name=coh, mode="lines", showlegend=coh in full,
+                           line=dict(color=T.seq[min(k + 1, len(T.seq) - 1)]), hovertemplate=coh + " · mes %{x}: %{y:.0f} %<extra></extra>")
+        B.end_labels(f3)
+        f3.update_layout(showlegend=False)
+        f3.update_xaxes(title_text="Meses desde el alta")
+        B.chart_frame("payback_real", "", f"Ninguna cohorte ha devuelto su S&M; a 24 meses, entre {F_['pb24_min']} y {F_['pb24_max']} %",
+                      "MRR acumulado de la cohorte ÷ S&M del trimestre en que entró, en % (100 = recuperado) · una línea por cohorte · solo edades maduras", f3,
+                      pb.pivot(index="cohort", columns="age", values="recovered").mul(100).round(0)
+                      .rename(columns=lambda c: f"Mes {c}").reset_index(),
+                      "Fuente: S&M_spend.csv y Transactions.csv (agregado)", 320, ysuffix=" %", month_ticks=False)
+    cac = load("cac_quarterly")
+    cac = cac[cac["quarter"] >= "2022Q2"].merge(eff[["quarter", "cac_variable_cop"]], on="quarter")
+    f4 = go.Figure()
+    f4.add_bar(x=[B.quarter_label(q) for q in cac["quarter"]], y=cac["cac_cop"] / 1e6, name="CAC combinado (todo el S&M)",
+               marker_color=T.viz[1], hovertemplate="%{x}: %{y:.1f} MM<extra></extra>")
+    f4.add_bar(x=[B.quarter_label(q) for q in cac["quarter"]], y=cac["cac_variable_cop"] / 1e6, name="CAC variable (solo adquisición)",
+               marker_color=T.viz[0], hovertemplate="%{x}: %{y:.1f} MM<extra></extra>")
+    B.chart_frame("cac", "", "Tras el recorte de 2S-2023, el costo por cliente nuevo bajó y las altas subieron",
+                  "CAC por trimestre · millones de COP por cliente nuevo · variable = PaidMedia, PublicidadNoWeb, Freelance y Travel", f4,
+                  cac[["quarter", "new_customers"]].assign(combinado_MM=(cac["cac_cop"] / 1e6).round(2),
+                                                           variable_MM=(cac["cac_variable_cop"] / 1e6).round(2)),
+                  "Fuente: S&M_spend.csv y Transactions.csv (agregado)", 320, ysuffix=" MM", month_ticks=False)
+    st.markdown(f"- **El recorte de 2S-2023 es el experimento natural que estos datos permiten:** el S&M cayó a la mitad, "
+                f"los clientes nuevos subieron y las cohortes posteriores devuelven a 9 meses el {F_['pb9_post']} % de su S&M, "
+                f"contra {F_['pb9_pre']} % las anteriores ({F_['pb9_x']} veces más por peso). No hay evidencia agregada de que "
+                f"más gasto traiga más clientes (correlación en diferencias {F_['corr_dif']}).\n"
+                f"- **Lectura condicional:** con las unidades del enunciado, el magic number ({F_['magic_min']} a {F_['magic_max']} "
+                "centavos) y el payback realizado dicen que Finora gasta varias veces más de lo que un SaaS justifica. Si las "
+                f"unidades estuvieran infladas 10 veces, el magic number quedaría entre {F_['magic_x10_min']} y "
+                f"{F_['magic_x10_max']}, en rango normal. **Las dos respuestas cambian decisiones; por eso confirmar las "
+                "unidades con Finanzas es una decisión pendiente, no una nota al pie.**\n"
+                "- Lo que no haría: un modelo de rezagos (adstock) por rubro. Con 31 puntos mensuales y 7 rubros colineales, "
+                "ningún rubro de adquisición correlaciona con las altas en niveles ni en diferencias; modelarlo más no lo cambia.")
 
 else:
     st.title("Calidad de datos, supuestos y lo que no se puede concluir")

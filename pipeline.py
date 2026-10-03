@@ -156,7 +156,8 @@ def main() -> None:
 
     from finora.figures import TEMPLATES, key_figures, render_docs
     data = {n: pd.read_csv(app_data / f"{n}.csv") for n in
-            ("rule_sensitivity", "retention_cohorts", "half_cut_monthly", "new_customers_monthly", "cac_quarterly")}
+            ("rule_sensitivity", "retention_cohorts", "half_cut_monthly", "new_customers_monthly", "cac_quarterly",
+             "sm_efficiency_quarterly", "cohort_payback_quarterly")}
     figs = key_figures(cm, data, sm, count_tests())
     pd.DataFrame({"cifra": list(figs), "valor": list(figs.values())}).to_csv(app_data / "key_figures.csv", index=False)
     print(f"Cifras clave: {len(figs)} en app/data/key_figures.csv")

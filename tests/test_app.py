@@ -83,7 +83,7 @@ def test_las_cifras_de_la_nota_aparecen_igual_en_las_apps():
     from finora.figures import load_figures
     f = load_figures()
     checks = {
-        ("historia", 0): [f"{f['crec_mrr']} %", f"De {f['mrr_ini']} a {f['mrr_fin']} MM", f"({f['sm_vs_mrr']} veces)"],
+        ("historia", 0): [f"{f['crec_mrr']} %", f"De {f['mrr_ini']} a {f['mrr_fin']} MM", f"entre {f['magic_min']} y {f['magic_max']} centavos"],
         ("historia", 1): [f"exagera el churn {f['x_churn']} veces", f"churn {f['cor_churn']} MM real contra {f['act_churn']} MM",
                           f"entre {f['sens_xchurn_min']} y {f['sens_xchurn_max']} veces",
                           f"de {f['cambio_neto']} MM de crecimiento, {f['cliente']} MM es comportamiento del cliente y "

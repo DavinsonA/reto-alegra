@@ -90,13 +90,16 @@ retención en lugar de en adquisición o pricing.
   - **No se puede distinguir sin canal, plan ni etapa del funnel.**
 
 ## S&M y eficiencia (con advertencias)
-- **S&M ≈ {{sm_vs_mrr}} veces el MRR total:** cerca de {{sm_mes}} MM al mes de S&M en 2024, contra {{mrr_fin}} MM de MRR en {{mes_corte}}.
-- **CAC combinado por trimestre:** {{cac_min}} a {{cac_max}} MM por cliente nuevo. **Payback sin margen bruto: {{payback_min}} a {{payback_max}} meses.**
-- **El S&M cayó a la mitad en el segundo semestre de 2023 y las altas subieron.** La correlación mensual en niveles es {{corr_niveles}}; en diferencias, {{corr_dif}} (débil). No hay evidencia agregada de que más gasto traiga más clientes.
+- **Magic number trimestral: {{magic_min}} a {{magic_max}} centavos** de ARR nuevo por cada peso de S&M del trimestre anterior. La referencia de mercado es 0,75; por debajo de 0,5, no se escala. Métrica que hoy no existe en Finora.
+- **Payback realizado por cohorte:** ninguna de las {{pb_cohortes}} cohortes ha devuelto el S&M del trimestre en que entró; a 24 meses, entre {{pb24_min}} y {{pb24_max}} % ({{pb24_n}} cohortes con 24 meses, sin margen bruto). El mercado recupera el CAC en 8 a 16 meses.
+- **S&M ≈ {{sm_vs_mrr}} veces el MRR total:** cerca de {{sm_mes}} MM al mes en 2024, contra {{mrr_fin}} MM de MRR en {{mes_corte}}. CAC combinado: {{cac_min}} a {{cac_max}} MM por cliente; CAC variable (solo rubros de adquisición, {{sm_var_pct}} % del gasto): {{cac_var_min}} a {{cac_var_max}} MM.
+- **El recorte de 2S-2023 es el experimento natural de estos datos:** el S&M cayó a la mitad y las altas subieron. Las cohortes posteriores devuelven a 9 meses el {{pb9_post}} % de su S&M, contra {{pb9_pre}} % las anteriores ({{pb9_x}} veces más por peso). Correlación mensual en niveles {{corr_niveles}}; en diferencias, {{corr_dif}}: no hay evidencia agregada de que más gasto traiga más clientes.
+- **Lectura condicional:** si las unidades del S&M estuvieran infladas 10 veces, el magic number quedaría entre {{magic_x10_min}} y {{magic_x10_max}}, en rango normal. O Finora gasta varias veces más de lo que un SaaS justifica, o el archivo tiene un error de unidad. **Las dos respuestas cambian decisiones.**
 - **Advertencias:**
   - El S&M incluye nómina y equipo, que no son solo adquisición.
   - No hay atribución por canal ni separación entre self-serve y ventas.
-  - Las unidades se tomaron del enunciado. **Con ellas, el S&M duplica el MRR: antes de cualquier decisión de inversión hay que confirmarlas con Finanzas.**
+  - Las unidades se tomaron del enunciado. **Confirmarlas con Finanzas es una decisión pendiente, no una nota al pie.**
+  - No se ajusta un modelo de rezagos (adstock) por rubro: con 31 puntos mensuales y 7 rubros colineales sería ruido con aspecto de ciencia. Ningún rubro de adquisición correlaciona con las altas.
 
 ## Calidad de datos (tabla de tratamiento)
 

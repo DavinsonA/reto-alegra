@@ -37,7 +37,7 @@ finora/      motor: carga y unidades (load), modelo actual vs. corregido (mrr), 
              sensibilidad (aggregates), cifras clave y documentos (figures), funnel y prototipo sintético (funnel,
              funnel_synth), gráfico XmR (xmr)
 sql/         el mismo análisis en DuckDB/Postgres y el DDL del modelo de dos capas
-tests/       59 pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
+tests/       61 pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
 app/         las tres apps en Streamlit (historia, demo, tablero) sobre app/data/, solo agregados
 docs/        modelo de datos, diseño del tablero, plantillas de los documentos y capturas
 notebooks/   5 notebooks con salidas: del perfilado a las conclusiones (notebooks/README.md)
@@ -54,7 +54,7 @@ source .venv/bin/activate          # Linux/Mac
 # .venv\Scripts\activate           # Windows
 pip install -r requirements.txt
 python pipeline.py                 # regenera app/data/ y los documentos con sus cifras
-pytest -q                          # 59 pruebas
+pytest -q                          # 61 pruebas
 streamlit run app/historia.py      # o app/demo.py, o app/tablero.py
 ```
 

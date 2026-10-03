@@ -117,8 +117,9 @@ if i == 0:
     ])
     st.markdown('<div class="hs-note"><b>Con qué contamos:</b> caja por cliente y mes, industria y gasto de S&M; no hay '
                 'precio de lista, registro de descuentos ni eventos del funnel.<br><b>Una advertencia antes de decidir:</b> '
-                f'con las unidades del enunciado, el S&M duplica el MRR ({F_["sm_vs_mrr"]} veces). Antes de cualquier '
-                'decisión de inversión hay que confirmarlas con Finanzas.</div>', unsafe_allow_html=True)
+                f'con las unidades del enunciado, cada peso de S&M devuelve entre {F_["magic_min"]} y {F_["magic_max"]} centavos '
+                'de ingreso recurrente nuevo; el mercado exige 75. Antes de cualquier decisión de inversión hay que confirmar '
+                'esas unidades con Finanzas.</div>', unsafe_allow_html=True)
 
 elif i == 1:
     st.title(f"El modelo de caja exagera el churn {F_['x_churn']} veces")

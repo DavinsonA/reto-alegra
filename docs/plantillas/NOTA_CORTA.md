@@ -46,7 +46,7 @@ la empresa (cobro, precios, descuentos, canales), y separar las dos cosas cambia
   - Motivos de descalificación y de pérdida.
   - Eventos de producto y enlace entre lead y cliente.
   - Gasto por canal y capacidad de SDR y AE.
-- **Validar con Finanzas las unidades del S&M:** con las del enunciado, el S&M mensual equivale a unas {{sm_vs_mrr}} veces el MRR. Antes de cualquier decisión de inversión hay que confirmarlas.
+- **Validar con Finanzas las unidades del S&M:** con las del enunciado, cada peso de S&M devuelve entre {{magic_min}} y {{magic_max}} centavos de ARR nuevo (magic number; el mercado exige 75) y ninguna cohorte ha devuelto su S&M en 24 meses. Si las unidades estuvieran infladas 10 veces, el magic number quedaría en rango normal. Antes de cualquier decisión de inversión hay que confirmarlas.
 
 ## 4. Qué cambiaría del modelo actual
 

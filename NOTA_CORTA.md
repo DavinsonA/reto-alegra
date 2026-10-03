@@ -46,7 +46,7 @@ la empresa (cobro, precios, descuentos, canales), y separar las dos cosas cambia
   - Motivos de descalificación y de pérdida.
   - Eventos de producto y enlace entre lead y cliente.
   - Gasto por canal y capacidad de SDR y AE.
-- **Validar con Finanzas las unidades del S&M:** con las del enunciado, el S&M mensual equivale a unas 2,1 veces el MRR. Antes de cualquier decisión de inversión hay que confirmarlas.
+- **Validar con Finanzas las unidades del S&M:** con las del enunciado, cada peso de S&M devuelve entre 2 y 27 centavos de ARR nuevo (magic number; el mercado exige 75) y ninguna cohorte ha devuelto su S&M en 24 meses. Si las unidades estuvieran infladas 10 veces, el magic number quedaría en rango normal. Antes de cualquier decisión de inversión hay que confirmarlas.
 
 ## 4. Qué cambiaría del modelo actual
 
@@ -65,7 +65,7 @@ la empresa (cobro, precios, descuentos, canales), y separar las dos cosas cambia
   - **Claude Code** para perfilar los datos y escribir el motor de MRR, el SQL y las apps.
   - Yo definí las preguntas, las reglas y las decisiones, y revisé cada resultado.
 - **Qué validé:**
-  - 59 pruebas automáticas: los casos del CFO, la conciliación del puente mes a mes y cada vista de las 3 apps.
+  - 61 pruebas automáticas: los casos del CFO, la conciliación del puente mes a mes y cada vista de las 3 apps.
   - **El mismo cálculo en SQL y en Python, con el mismo resultado.**
   - **Sensibilidad por regla, una a la vez (10 variantes): ninguna cambia el signo ni el orden de magnitud.** El churn corregido va de −15,7 a −27,6 MM, contra −72,9 MM en el modelo actual.
   - Revisión manual de las series de 11 clientes y revisión visual de cada vista.

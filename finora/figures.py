@@ -144,6 +144,22 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
     cac = cac[cac["quarter"].astype(str) >= "2022Q2"]
     f.update(cac_min=mm(cac["cac_cop"].min()), cac_max=mm(cac["cac_cop"].max()),
              payback_min=es(cac["payback_months_no_margin"].min(), 0), payback_max=es(cac["payback_months_no_margin"].max(), 0))
+    eff = tables["sm_efficiency_quarterly"]
+    eff = eff[eff["complete"] & (eff["quarter"].astype(str) >= "2022Q2")]
+    f.update(magic_min=es(eff["magic_number"].min() * 100, 0), magic_max=es(eff["magic_number"].max() * 100, 0),
+             magic_x10_min=es(eff["magic_number"].min() * 10, 1), magic_x10_max=es(eff["magic_number"].max() * 10, 1),
+             cac_var_min=mm(eff["cac_variable_cop"].min()), cac_var_max=mm(eff["cac_variable_cop"].max()),
+             sm_var_pct=pct(eff["sm_variable_cop"].sum() / eff["sm_cop"].sum()))
+    pb = tables["cohort_payback_quarterly"]
+    pb = pb[pb["mature"] & (pb["cohort"].astype(str) >= "2022Q2")]
+    r24 = pb[pb["age"] == 24]
+    r9 = pb[pb["age"] == 9].set_index("cohort")["recovered"]
+    pre, post = r9[r9.index.astype(str) <= "2023Q2"].mean(), r9[r9.index.astype(str) >= "2023Q3"].mean()
+    f.update(pb24_min=pct(r24["recovered"].min()), pb24_max=pct(r24["recovered"].max()), pb24_n=es(len(r24), 0),
+             pb_cohortes=es(pb["cohort"].nunique(), 0),
+             pb_sin_payback=es(int((pb.groupby("cohort")["recovered"].max() < 1).sum()), 0),
+             pb9_pre=pct(pre), pb9_post=pct(post), pb9_x=es(post / pre, 1),
+             pb9_post_n=es(int((r9.index.astype(str) >= "2023Q3").sum()), 0))
     newm = cm[cm["mv"] == "new"].groupby("month")["customer_id"].nunique()
     j = pd.concat([sm_m.rename("sm"), newm.rename("n")], axis=1).dropna()
     j = j[j.index >= WINDOW_START]

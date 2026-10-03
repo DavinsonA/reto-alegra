@@ -34,6 +34,7 @@ RULE_SCENARIOS = [
     ("Uso variable: todos", "Clientes de uso variable", "usage_distinct_amounts = 1", Rules(usage_distinct_amounts=1)),
 ]
 SENS_MOVES = ["new", "expansion", "price_uplift", "reactivation", "contraction", "churn"]
+SM_VARIABLE = ["PaidMedia", "PublicidadNoWeb", "Freelance", "Travel"]
 
 
 def nrr_12m(cm: pd.DataFrame, year: int, col: str = "mrr_cop") -> float:
@@ -158,6 +159,28 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
     cac["cac_cop"] = cac["sm_cop"] / cac["new_customers"]
     cac["payback_months_no_margin"] = cac["cac_cop"] / (cac["new_mrr_cop"] / cac["new_customers"])
     tables["cac_quarterly"] = cac
+
+    smq = sm.assign(q=sm["month"].dt.asfreq("Q")).groupby("q")
+    eff = pd.DataFrame({"sm_cop": smq["sm_total_cop"].sum(), "sm_variable_cop": smq[SM_VARIABLE].sum().sum(axis=1),
+                        "months": smq["month"].nunique()})
+    eff["sm_fixed_cop"] = eff["sm_cop"] - eff["sm_variable_cop"]
+    mrr_m = cm.groupby("month")["mrr_cop"].sum()
+    arr = mrr_m.groupby(mrr_m.index.asfreq("Q")).last() * 12
+    eff["delta_arr_cop"] = arr - arr.shift(1)
+    eff["magic_number"] = eff["delta_arr_cop"] / eff["sm_cop"].shift(1)
+    eff = eff.join(nq)
+    eff["magic_number_new_only"] = eff["new_mrr_cop"] * 12 / eff["sm_cop"].shift(1)
+    eff["cac_variable_cop"] = eff["sm_variable_cop"] / eff["new_customers"]
+    eff["complete"] = eff["months"] == 3
+    tables["sm_efficiency_quarterly"] = eff.drop(columns="months").reset_index(names="quarter")
+
+    last_month = cm["month"].max()
+    pb = ret[ret["model"] == "Corregido (N=2)"].sort_values(["cohort", "age"])[["cohort", "age", "mrr_sum"]].copy()
+    pb["cum_mrr_cop"] = pb.groupby("cohort")["mrr_sum"].cumsum()
+    pb["sm_cop"] = pb["cohort"].map(eff["sm_cop"])
+    pb["recovered"] = pb["cum_mrr_cop"] / pb["sm_cop"]
+    pb["mature"] = (last_month - pb["cohort"].apply(lambda q: q.asfreq("M", "end"))).apply(lambda d: d.n) >= pb["age"]
+    tables["cohort_payback_quarterly"] = pb.drop(columns="mrr_sum")
 
     tables["rule_sensitivity"] = rule_sensitivity(tx)
 

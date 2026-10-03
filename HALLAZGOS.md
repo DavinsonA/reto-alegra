@@ -90,13 +90,16 @@ retención en lugar de en adquisición o pricing.
   - **No se puede distinguir sin canal, plan ni etapa del funnel.**
 
 ## S&M y eficiencia (con advertencias)
-- **S&M ≈ 2,1 veces el MRR total:** cerca de 198 MM al mes de S&M en 2024, contra 95,7 MM de MRR en oct-2024.
-- **CAC combinado por trimestre:** 2,2 a 13,0 MM por cliente nuevo. **Payback sin margen bruto: 52 a 201 meses.**
-- **El S&M cayó a la mitad en el segundo semestre de 2023 y las altas subieron.** La correlación mensual en niveles es −0,58; en diferencias, 0,20 (débil). No hay evidencia agregada de que más gasto traiga más clientes.
+- **Magic number trimestral: 2 a 27 centavos** de ARR nuevo por cada peso de S&M del trimestre anterior. La referencia de mercado es 0,75; por debajo de 0,5, no se escala. Métrica que hoy no existe en Finora.
+- **Payback realizado por cohorte:** ninguna de las 10 cohortes ha devuelto el S&M del trimestre en que entró; a 24 meses, entre 10 y 14 % (2 cohortes con 24 meses, sin margen bruto). El mercado recupera el CAC en 8 a 16 meses.
+- **S&M ≈ 2,1 veces el MRR total:** cerca de 198 MM al mes en 2024, contra 95,7 MM de MRR en oct-2024. CAC combinado: 2,2 a 13,0 MM por cliente; CAC variable (solo rubros de adquisición, 69 % del gasto): 1,3 a 9,3 MM.
+- **El recorte de 2S-2023 es el experimento natural de estos datos:** el S&M cayó a la mitad y las altas subieron. Las cohortes posteriores devuelven a 9 meses el 18 % de su S&M, contra 6 % las anteriores (3,0 veces más por peso). Correlación mensual en niveles −0,58; en diferencias, 0,20: no hay evidencia agregada de que más gasto traiga más clientes.
+- **Lectura condicional:** si las unidades del S&M estuvieran infladas 10 veces, el magic number quedaría entre 0,2 y 2,7, en rango normal. O Finora gasta varias veces más de lo que un SaaS justifica, o el archivo tiene un error de unidad. **Las dos respuestas cambian decisiones.**
 - **Advertencias:**
   - El S&M incluye nómina y equipo, que no son solo adquisición.
   - No hay atribución por canal ni separación entre self-serve y ventas.
-  - Las unidades se tomaron del enunciado. **Con ellas, el S&M duplica el MRR: antes de cualquier decisión de inversión hay que confirmarlas con Finanzas.**
+  - Las unidades se tomaron del enunciado. **Confirmarlas con Finanzas es una decisión pendiente, no una nota al pie.**
+  - No se ajusta un modelo de rezagos (adstock) por rubro: con 31 puntos mensuales y 7 rubros colineales sería ruido con aspecto de ciencia. Ningún rubro de adquisición correlaciona con las altas.
 
 ## Calidad de datos (tabla de tratamiento)
 

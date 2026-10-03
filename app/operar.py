@@ -259,6 +259,46 @@ def monthly_review(T: B.Theme) -> None:
                           f, x_.assign(month=months)[["month", "value", "center", "lcl", "ucl", "signal", "reason"]],
                           None, 210, ysuffix=" MM", month_ticks="year")
 
+    st.markdown('<div class="da-h3" style="margin-top:8px">Eficiencia del S&M</div><div class="da-sub">Cuánto ingreso nuevo '
+                'compra cada peso de Sales & Marketing · unidades del enunciado, pendientes de confirmar con Finanzas</div>'
+                '<div class="da-source" style="margin-bottom:8px">Fuente: S&M_spend.csv y Transactions.csv (agregado)</div>',
+                unsafe_allow_html=True)
+    sm = _load("sm_monthly").set_index("month")
+    eff = _load("sm_efficiency_quarterly")
+    eff = eff[eff["complete"] & (eff["quarter"] >= "2022Q2")]
+    var = sm[["PaidMedia", "PublicidadNoWeb", "Freelance", "Travel"]].sum(axis=1).reindex(months)
+    cac3 = (var.rolling(3).sum() / series["new_count"].rolling(3).sum()).dropna()
+    Xc = xmr(cac3, baseline=18).reindex(months)
+    e1, e2, e3 = st.columns(3, gap="small")
+    with e1:
+        f = go.Figure(go.Bar(x=months, y=sm["sm_total_cop"].reindex(months) / 1e6, marker_color=T.viz[1],
+                             hovertemplate="%{x}: %{y:.0f} MM<extra></extra>"))
+        f.add_vline(x=m, line_color=T.ink, line_width=1, opacity=0.35)
+        B.chart_frame("sm_mes", "", "S&M del mes", f"{B.mm(sm.loc[m, 'sm_total_cop'], 0)} en {_mes(m)} · MM COP",
+                      f, None, None, 210, ysuffix=" MM", month_ticks="year")
+    with e2:
+        f = go.Figure()
+        f.add_scatter(x=months, y=Xc["ucl"] / 1e6, mode="lines", line=dict(color=T.line_strong, width=1), hoverinfo="skip")
+        f.add_scatter(x=months, y=Xc["lcl"] / 1e6, mode="lines", line=dict(color=T.line_strong, width=1), fill="tonexty",
+                      fillcolor=T.band, hoverinfo="skip")
+        f.add_scatter(x=months, y=Xc["value"] / 1e6, mode="lines", line=dict(color=T.viz[0]),
+                      hovertemplate="%{x}: %{y:.2f} MM<extra></extra>")
+        f.add_vline(x=m, line_color=T.ink, line_width=1, opacity=0.35)
+        f.update_layout(showlegend=False)
+        state_c = _status_chip(Xc.loc[m].to_dict(), "up")[0] if pd.notna(Xc.loc[m, "value"]) else "Sin dato"
+        B.chart_frame("cac_var", "", "CAC variable, 3 meses móviles", f"{state_c} · MM por cliente nuevo · solo rubros de adquisición",
+                      f, Xc.assign(month=months)[["month", "value", "center", "lcl", "ucl", "signal"]], None, 210,
+                      ysuffix=" MM", month_ticks="year")
+    with e3:
+        f = go.Figure(go.Bar(x=[B.quarter_label(q) for q in eff["quarter"]], y=eff["magic_number"], marker_color=T.viz[0],
+                             hovertemplate="%{x}: %{y:.2f}<extra></extra>"))
+        f.add_hline(y=0.75, line_color=T.ink, line_width=1)
+        f.add_hline(y=0.5, line_color=T.line_strong, line_width=1, line_dash="dot")
+        last_q = eff.iloc[-1]
+        B.chart_frame("magic_q", "", "Magic number, trimestre cerrado",
+                      f"{B.es(last_q['magic_number'], 2)} en {B.quarter_label(last_q['quarter']).replace('<br>', ' ')} · "
+                      "líneas: 0,75 escalar · 0,5 revisar", f, eff[["quarter", "magic_number"]].round(2), None, 210, month_ticks=False)
+
     with st.expander("Dueños, reglas de alerta y acciones"):
         st.markdown('<div class="da-sub">Cómo se calcula la banda: límites naturales del proceso (XmR) = media ± 2,66 × '
                     'rango móvil promedio, fijados con los primeros 18 meses de la ventana. Señal = un punto fuera de los '
@@ -278,6 +318,8 @@ def monthly_review(T: B.Theme) -> None:
                          ("MRR en mora", "Cobranza", "Más de 3 % del MRR", "Gestión de cobro antes de confirmar churn (N = 2 meses)"),
                          ("Descuentos (nuevo)", "Finanzas + Deal desk", "Price realization < 95 %",
                           "Revisar aprobaciones y vencimientos"),
+                         ("Eficiencia del S&M (nuevo)", "CFO + CRO", "Magic number < 0,5 dos trimestres seguidos, o CAC variable en señal arriba",
+                          "No escalar canales; revisar mezcla de gasto y confirmar unidades"),
                      ]), SRC_TX)
 
 
