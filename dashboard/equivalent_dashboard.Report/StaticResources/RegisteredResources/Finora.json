@@ -1,0 +1,81 @@
+{
+  "name": "Finora",
+  "dataColors": [
+    "#009786",
+    "#8670c0",
+    "#ba673f",
+    "#2b88c0",
+    "#b4608a",
+    "#a28218"
+  ],
+  "background": "#FAFBFC",
+  "foreground": "#11151A",
+  "tableAccent": "#009786",
+  "textClasses": {
+    "callout": {
+      "fontSize": 28,
+      "fontFace": "Segoe UI",
+      "color": "#11151A"
+    },
+    "title": {
+      "fontSize": 13,
+      "fontFace": "Segoe UI",
+      "color": "#11151A"
+    },
+    "header": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI",
+      "color": "#11151A"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#50585B"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#E3E7EC"
+              }
+            },
+            "radius": 12
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "fontFamily": "Segoe UI",
+            "fontSize": 13,
+            "bold": true,
+            "fontColor": {
+              "solid": {
+                "color": "#11151A"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

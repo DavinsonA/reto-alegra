@@ -1,0 +1,473 @@
+cultureInfo es-ES
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "puente.valor_xmr": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Puente",
+			          "ConceptualProperty": "Valor XmR"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "valor": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "puente.centro_xmr": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Puente",
+			          "ConceptualProperty": "Centro XmR"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "centro": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "puente.lcl_xmr": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Puente",
+			          "ConceptualProperty": "LCL XmR"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "LCL": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "puente.ucl_xmr": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Puente",
+			          "ConceptualProperty": "UCL XmR"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "UCL": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "puente.señal_xmr_punto": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Puente",
+			          "ConceptualProperty": "Señal XmR (punto)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "señal": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelxmr.f_valor_última_semana": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelXmR",
+			          "ConceptualProperty": "F valor última semana"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Última semana": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelxmr.f_centro_última_semana": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelXmR",
+			          "ConceptualProperty": "F centro última semana"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Lo normal": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelxmr.f_estado_última_semana": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelXmR",
+			          "ConceptualProperty": "F estado última semana"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Estado": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelxmr.f_valor": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelXmR",
+			          "ConceptualProperty": "F valor"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "valor": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelxmr.f_centro": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelXmR",
+			          "ConceptualProperty": "F centro"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "centro": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelxmr.f_lcl": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelXmR",
+			          "ConceptualProperty": "F LCL"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "LCL": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelxmr.f_ucl": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelXmR",
+			          "ConceptualProperty": "F UCL"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "UCL": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelxmr.f_señal_punto": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelXmR",
+			          "ConceptualProperty": "F señal (punto)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "señal": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelmezcla.channel": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelMezcla",
+			          "ConceptualProperty": "channel"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Canal": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelmezcla.share_base": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelMezcla",
+			          "ConceptualProperty": "share_base"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Peso antes": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelmezcla.share_recent": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelMezcla",
+			          "ConceptualProperty": "share_recent"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Peso ahora": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelmezcla.conv_base": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelMezcla",
+			          "ConceptualProperty": "conv_base"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Conv. antes": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelmezcla.conv_recent": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelMezcla",
+			          "ConceptualProperty": "conv_recent"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Conv. ahora": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelmezcla.mix_effect": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelMezcla",
+			          "ConceptualProperty": "mix_effect"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Efecto mezcla": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelmezcla.rate_effect": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelMezcla",
+			          "ConceptualProperty": "rate_effect"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Efecto tasa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelestancados.owner": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelEstancados",
+			          "ConceptualProperty": "owner"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Dueño": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "funnelestancados.total": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FunnelEstancados",
+			          "ConceptualProperty": "total"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Total": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

@@ -1,0 +1,61 @@
+/// Funnel SINTÉTICO: mezcla frente a tasa por canal, New a Engaged (funnel_kitagawa_channel.csv)
+table FunnelMezcla
+	lineageTag: 4b82f598-1af4-44c3-b2fe-e892c23d1eac
+
+	column channel
+		dataType: string
+		lineageTag: cedc9c67-4505-42c4-82ea-aa837aa628c8
+		sourceColumn: channel
+
+	column share_base
+		dataType: double
+		formatString: 0.0%
+		lineageTag: a9fe1dce-d68b-4806-9b33-9bbaa36f482d
+		summarizeBy: none
+		sourceColumn: share_base
+
+	column share_recent
+		dataType: double
+		formatString: 0.0%
+		lineageTag: d2a89051-8cb9-43c1-ae94-480ccc4aeceb
+		summarizeBy: none
+		sourceColumn: share_recent
+
+	column conv_base
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 530c792a-a665-42b6-bb69-b07f1e7a8de2
+		summarizeBy: none
+		sourceColumn: conv_base
+
+	column conv_recent
+		dataType: double
+		formatString: 0.0%
+		lineageTag: e4381d5a-fc4d-49e6-b7ca-2c0c8ad931b6
+		summarizeBy: none
+		sourceColumn: conv_recent
+
+	column mix_effect
+		dataType: double
+		formatString: 0.00%
+		lineageTag: b273bea4-466e-4720-85e7-029ac3aded78
+		summarizeBy: sum
+		sourceColumn: mix_effect
+
+	column rate_effect
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 2f3fd274-6099-49b6-841a-5eaa60cd5928
+		summarizeBy: sum
+		sourceColumn: rate_effect
+
+	partition FunnelMezcla = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\funnel_kitagawa_channel.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"channel", type text}, {"share_base", type number}, {"share_recent", type number}, {"conv_base", type number}, {"conv_recent", type number}, {"mix_effect", type number}, {"rate_effect", type number}}, "en-US")
+				in
+				    Tipos
+

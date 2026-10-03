@@ -1,0 +1,180 @@
+/// Funnel SINTÉTICO: métricas semanales y mensuales con límites XmR (funnel_xmr.csv)
+table FunnelXmR
+	lineageTag: 5ba32e5b-eed6-4b44-b85e-0cf39372f19f
+
+	measure 'F valor' = MAX(FunnelXmR[value]) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		displayFolder: Funnel
+		lineageTag: deb6fc4b-5e43-465b-b41b-e13ad314f89e
+
+		formatStringDefinition = SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "leads", "#,0", "new_customers", "#,0", "#,0.0")
+
+	measure 'F centro' = MAX(FunnelXmR[center]) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		formatString: #,0.0
+		displayFolder: Funnel
+		lineageTag: b683e7dc-8502-40c9-b2a2-cf99ee491417
+
+	measure 'F LCL' = MAX(FunnelXmR[lcl]) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		formatString: #,0.0
+		displayFolder: Funnel
+		lineageTag: 51bd09ca-d44c-45fd-8259-fae40640f9cb
+
+	measure 'F UCL' = MAX(FunnelXmR[ucl]) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		formatString: #,0.0
+		displayFolder: Funnel
+		lineageTag: 5eb564dd-98a4-4c5e-86f3-5e2b42da4847
+
+	measure 'F señal (punto)' = CALCULATE(MAX(FunnelXmR[value]), FunnelXmR[signal] = TRUE()) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		formatString: #,0.0
+		displayFolder: Funnel
+		lineageTag: 001adfd2-6471-4577-b9ec-601505e1a72b
+
+	measure 'F última semana' = CALCULATE(MAX(FunnelXmR[period]), ALL(FunnelXmR), FunnelXmR[freq] = "W")
+		formatString: d mmm yyyy
+		displayFolder: Funnel
+		lineageTag: 9e6b476b-4b4d-4cd6-afeb-d388a69a93d4
+
+	/// Valor de la métrica del contexto en la última semana con dato
+	measure 'F valor última semana' = VAR p = CALCULATE(MAX(FunnelXmR[period]), FunnelXmR[freq] = "W", NOT ISBLANK(FunnelXmR[value])) RETURN CALCULATE(MAX(FunnelXmR[value]), FunnelXmR[freq] = "W", FunnelXmR[period] = p) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		displayFolder: Funnel
+		lineageTag: 299a1f92-942a-4676-8e43-79356e5b57a1
+
+		formatStringDefinition = SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "leads", "#,0", "new_customers", "#,0", "new_mrr", "#,0.0\" MM\"", "speed_p50", "#,0.0\" h\"", "#,0.0\" %\"")
+
+	measure 'F centro última semana' = VAR p = CALCULATE(MAX(FunnelXmR[period]), FunnelXmR[freq] = "W", NOT ISBLANK(FunnelXmR[value])) RETURN CALCULATE(MAX(FunnelXmR[center]), FunnelXmR[freq] = "W", FunnelXmR[period] = p) * SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", 0.000001, "leads", 1, "new_customers", 1, "speed_p50", 1, 100)
+		displayFolder: Funnel
+		lineageTag: dc529d26-e00e-48f9-9972-036b23fbb370
+
+		formatStringDefinition = SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "leads", "#,0", "new_customers", "#,0", "#,0.0")
+
+	measure 'F estado última semana' = VAR p = CALCULATE(MAX(FunnelXmR[period]), FunnelXmR[freq] = "W", NOT ISBLANK(FunnelXmR[value])) VAR s = CALCULATE(COUNTROWS(FunnelXmR), FunnelXmR[freq] = "W", FunnelXmR[period] = p, FunnelXmR[signal] = TRUE()) VAR r = CALCULATE(MAX(FunnelXmR[reason]), FunnelXmR[freq] = "W", FunnelXmR[period] = p) VAR d = CALCULATE(MAX(FunnelXmR[direction]), FunnelXmR[freq] = "W", FunnelXmR[period] = p) RETURN IF(s > 0, "Señal: " & r & ", " & d & " de lo normal", "Dentro de lo normal")
+		displayFolder: Funnel
+		lineageTag: 24211eda-c1d8-4922-a785-44125f26dd52
+
+	/// Entradas controlables antes de SQL con señal en la última semana
+	measure 'Entradas en señal' = VAR t = ADDCOLUMNS(CALCULATETABLE(VALUES(FunnelXmR[metric]), ALL(FunnelXmR), FunnelXmR[metric] IN {"high_fit", "speed_p50", "sla_1h", "work_to_eng"}), "s", VAR p = CALCULATE(MAX(FunnelXmR[period]), FunnelXmR[freq] = "W", NOT ISBLANK(FunnelXmR[value])) RETURN CALCULATE(COUNTROWS(FunnelXmR), FunnelXmR[freq] = "W", FunnelXmR[period] = p, FunnelXmR[signal] = TRUE())) RETURN SUMX(t, IF([s] > 0, 1, 0))
+		formatString: 0
+		displayFolder: Funnel
+		lineageTag: 3ab80339-3f55-4e38-b093-4f934547e20e
+
+	measure 'Post-SQL en señal' = VAR p = CALCULATE(MAX(FunnelXmR[period]), ALL(FunnelXmR), FunnelXmR[freq] = "W", FunnelXmR[metric] = "sql_to_won", NOT ISBLANK(FunnelXmR[value])) RETURN CALCULATE(COUNTROWS(FunnelXmR), ALL(FunnelXmR), FunnelXmR[freq] = "W", FunnelXmR[period] = p, FunnelXmR[metric] = "sql_to_won", FunnelXmR[signal] = TRUE())
+		formatString: 0
+		displayFolder: Funnel
+		lineageTag: 136983db-5402-42ec-b602-818fabda8f4d
+
+	measure 'Leads estancados' = SUM(FunnelEstancados[total])
+		formatString: #,0
+		displayFolder: Funnel
+		lineageTag: 5b4fcaf6-4640-4d03-bf3f-9579ef9394cf
+
+	measure 'Mezcla pp' = SUM(FunnelMezcla[mix_effect]) * 100
+		formatString: +0.0;-0.0;0.0
+		displayFolder: Funnel
+		lineageTag: a33065fd-d0fc-48c0-80b1-ac278f5d25e4
+
+	measure 'Tasa pp' = SUM(FunnelMezcla[rate_effect]) * 100
+		formatString: +0.0;-0.0;0.0
+		displayFolder: Funnel
+		lineageTag: db74bde5-0c92-44d5-a037-c7aa6659b293
+
+	measure 'Línea de estado semanal' = VAR p = [F última semana] VAR n = [Entradas en señal] VAR pst = [Post-SQL en señal] VAR resumen = IF(n > 0 && pst = 0, n & " entradas en señal, todas antes de SQL · post-SQL normal", IF(pst > 0, "Post-SQL en señal: revisar los deals de Demo y Proposal con el líder AE", "Sin señales: nada que ver aquí")) RETURN "Semana del " & DAY(p) & " de " & FORMAT(p, "mmm") & " de " & YEAR(p) & " · " & resumen & " · " & FORMAT([Leads estancados], "#,0") & " leads estancados"
+		displayFolder: Funnel
+		lineageTag: ae9881fb-4cd6-49c3-bf8c-511b37dd88ff
+
+	measure 'Lectura semanal' = VAR total = [Mezcla pp] + [Tasa pp] VAR lider = IF(ABS([Tasa pp]) >= ABS([Mezcla pp]), "tasa", "mezcla") VAR porque = "Por qué: New a Engaged (SDR) movió " & FORMAT(total, "+0.0;-0.0") & " pp en 6 semanas frente a las 12 previas, " & FORMAT([Mezcla pp], "+0.0;-0.0") & " por mezcla de canal y " & FORMAT([Tasa pp], "+0.0;-0.0") & " por tasa: casi todo es " & lider & "." VAR capacidad = IF([Entradas en señal] > 0 && [Post-SQL en señal] = 0, " El volumen subió y el primer contacto se demoró; la conversión cae antes de SQL mientras post-SQL sigue estable. Apunta a capacidad SDR, no al AE." & UNICHAR(10) & "Qué hacemos: ruteo y primer contacto automático para leads de bajo ajuste, SLA de 1 hora para los de alto ajuste, y revisar la meta de Paid Social por SQL, no por leads.", UNICHAR(10) & "Qué hacemos: cada dueño revisa su entrada; sin señal, nada que ver aquí.") RETURN porque & capacidad
+		displayFolder: Funnel
+		lineageTag: 1523f60d-1336-4217-aa2e-35b94fcd39cc
+
+	measure 'F KPI pie' = VAR u = SWITCH(SELECTEDVALUE(FunnelXmR[metric]), "new_mrr", " MM", "speed_p50", " h", "leads", "", "new_customers", "", " %") RETURN [F estado última semana] & " · lo normal: " & FORMAT([F centro última semana], "#,0.0") & u
+		displayFolder: Funnel
+		lineageTag: dba2b89a-0386-4d77-90b0-d45bcb32cdcb
+
+	column freq
+		dataType: string
+		lineageTag: 81299e4c-3b36-41b8-8319-fad8c364303b
+		sourceColumn: freq
+
+	column period
+		dataType: dateTime
+		formatString: d mmm yyyy
+		lineageTag: dd1bcba4-54b1-487a-8022-b97292258ffd
+		summarizeBy: none
+		sourceColumn: period
+
+	column metric
+		dataType: string
+		lineageTag: 70978167-1b0d-4660-b163-ac9069eff264
+		sourceColumn: metric
+
+	column value
+		dataType: double
+		formatString: #,0.00
+		lineageTag: e2521647-57b1-4cf4-9a6a-3d064a1adb6f
+		summarizeBy: none
+		sourceColumn: value
+
+	column center
+		dataType: double
+		lineageTag: 02ad6abd-d9a3-4a94-8266-56c89e916f58
+		summarizeBy: none
+		sourceColumn: center
+
+	column lcl
+		dataType: double
+		lineageTag: a6e7fdf7-f7bf-4de4-a019-7adfead752a5
+		summarizeBy: none
+		sourceColumn: lcl
+
+	column ucl
+		dataType: double
+		lineageTag: 8120aad3-774f-48a7-b67f-718a79b00324
+		summarizeBy: none
+		sourceColumn: ucl
+
+	column signal
+		dataType: boolean
+		lineageTag: 7d241947-33be-402e-bfea-3a0444170f8d
+		summarizeBy: none
+		sourceColumn: signal
+
+	column direction
+		dataType: string
+		lineageTag: 45a322ee-922c-4c2e-bb46-0eb5fd5aed60
+		sourceColumn: direction
+
+	column reason
+		dataType: string
+		lineageTag: add8c25c-c290-4494-a65d-f30b9cfdac5f
+		sourceColumn: reason
+
+	column ticket
+		dataType: double
+		formatString: #,0
+		lineageTag: b3842b49-0098-494e-8c57-c2d97eaf14fc
+		summarizeBy: none
+		sourceColumn: ticket
+
+	column Métrica
+		dataType: string
+		lineageTag: aca94ae4-6235-4750-8a98-dc57bec61c4c
+		sourceColumn: Métrica
+		sortByColumn: OrdenMetrica
+
+	column OrdenMetrica
+		dataType: int64
+		isHidden
+		lineageTag: a5190274-b07b-461e-a9c3-2123ba0f5d37
+		summarizeBy: none
+		sourceColumn: OrdenMetrica
+
+	partition FunnelXmR = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\funnel_xmr.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"freq", type text}, {"period", type date}, {"metric", type text}, {"value", type number}, {"center", type number}, {"lcl", type number}, {"ucl", type number}, {"signal", type logical}, {"direction", type text}, {"reason", type text}, {"ticket", type number}}, "en-US"),
+				    Etiqueta = Table.AddColumn(Tipos, "Métrica", each Record.FieldOrDefault([leads="Leads nuevos", high_fit="Mezcla de alto ajuste", speed_p50="Speed-to-lead P50", sla_1h="Contactados en < 1 hora", work_to_eng="Working a Engaged", sql_to_won="SQL a Won", new_customers="Clientes nuevos", new_mrr="MRR nuevo"], [metric], [metric]), type text),
+				    Orden = Table.AddColumn(Etiqueta, "OrdenMetrica", each Record.FieldOrDefault([speed_p50=1, sla_1h=2, work_to_eng=3, sql_to_won=4, leads=5, high_fit=6, new_customers=7, new_mrr=8], [metric], 9), Int64.Type)
+				in
+				    Orden
+

@@ -1,0 +1,83 @@
+/// Gasto de S&M por rubro y mes (sm_monthly.csv)
+table SM
+	lineageTag: 6e5460c1-da8b-46b2-8f9f-f8c77653bca5
+
+	column month
+		dataType: string
+		lineageTag: d15cd66b-5800-4565-b985-d5ebe3632f3f
+		sourceColumn: month
+
+	column PaidMedia
+		dataType: double
+		formatString: #,0
+		lineageTag: b3115aef-5b0c-468e-9a3c-811d7a7fa98e
+		summarizeBy: sum
+		sourceColumn: PaidMedia
+
+	column Travel
+		dataType: double
+		formatString: #,0
+		lineageTag: d1d94a2f-f9e2-44b3-a1f9-351ad12eddc1
+		summarizeBy: sum
+		sourceColumn: Travel
+
+	column PublicidadNoWeb
+		dataType: double
+		formatString: #,0
+		lineageTag: 1a17c546-6dac-4c6d-bd0d-40e5817255d7
+		summarizeBy: sum
+		sourceColumn: PublicidadNoWeb
+
+	column Freelance
+		dataType: double
+		formatString: #,0
+		lineageTag: e1aa1b28-d639-45cc-93a4-b09896d4c734
+		summarizeBy: sum
+		sourceColumn: Freelance
+
+	column SoftwareTools
+		dataType: double
+		formatString: #,0
+		lineageTag: 500396e6-a0d9-4ac8-95ec-efef2b2b846a
+		summarizeBy: sum
+		sourceColumn: SoftwareTools
+
+	column Team
+		dataType: double
+		formatString: #,0
+		lineageTag: d749f15e-83bf-43a5-9e02-3bd601e3641c
+		summarizeBy: sum
+		sourceColumn: Team
+
+	column PayrollExpenses
+		dataType: double
+		formatString: #,0
+		lineageTag: 570a09a4-94e2-44c8-aafc-d2b068fdbab5
+		summarizeBy: sum
+		sourceColumn: PayrollExpenses
+
+	column sm_total_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 5e7fd3af-f7c3-47c7-99bc-0e40f8834aaf
+		summarizeBy: sum
+		sourceColumn: sm_total_cop
+
+	column sm_variable_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: caadffd0-daff-4eaf-adcc-c7448e1062c1
+		summarizeBy: sum
+		sourceColumn: sm_variable_cop
+
+	partition SM = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\sm_monthly.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"PaidMedia", type number}, {"Travel", type number}, {"PublicidadNoWeb", type number}, {"Freelance", type number}, {"SoftwareTools", type number}, {"Team", type number}, {"PayrollExpenses", type number}, {"month", type text}, {"sm_total_cop", type number}}, "en-US"),
+				    Variable = Table.AddColumn(Tipos, "sm_variable_cop", each [PaidMedia] + [PublicidadNoWeb] + [Freelance] + [Travel], type number)
+				in
+				    Variable
+

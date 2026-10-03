@@ -1,0 +1,61 @@
+/// Funnel SINTÉTICO: leads estancados por dueño y etapa (funnel_stalled_by_owner.csv)
+table FunnelEstancados
+	lineageTag: 996d6759-9bb3-49c7-ac64-89e74cea4038
+
+	column owner
+		dataType: string
+		lineageTag: a5188bef-2305-409a-b65c-7300ed392252
+		sourceColumn: owner
+
+	column Demo
+		dataType: int64
+		lineageTag: cb0418bf-321b-4022-9f36-80648e591d55
+		summarizeBy: sum
+		sourceColumn: Demo
+
+	column Engaged
+		dataType: int64
+		lineageTag: caf40323-103b-4d5e-a35e-2ae858fdbff2
+		summarizeBy: sum
+		sourceColumn: Engaged
+
+	column New
+		dataType: int64
+		lineageTag: 85b62463-0f52-463d-b400-0edf90f26bfb
+		summarizeBy: sum
+		sourceColumn: New
+
+	column Proposal
+		dataType: int64
+		lineageTag: c2bc7c25-5cad-4541-88a8-5b76004dd10b
+		summarizeBy: sum
+		sourceColumn: Proposal
+
+	column SQL
+		dataType: int64
+		lineageTag: 8d976c95-26de-4254-96c4-750a1ebbf436
+		summarizeBy: sum
+		sourceColumn: SQL
+
+	column Working
+		dataType: int64
+		lineageTag: b0353880-0b88-4cb9-ba1d-8ac181f7d4c6
+		summarizeBy: sum
+		sourceColumn: Working
+
+	column total
+		dataType: int64
+		lineageTag: 60615885-e3bb-41ca-b169-778e66e98f1f
+		summarizeBy: sum
+		sourceColumn: total
+
+	partition FunnelEstancados = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\funnel_stalled_by_owner.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"owner", type text}, {"Demo", Int64.Type}, {"Engaged", Int64.Type}, {"New", Int64.Type}, {"Proposal", Int64.Type}, {"SQL", Int64.Type}, {"Working", Int64.Type}, {"total", Int64.Type}}, "en-US")
+				in
+				    Tipos
+

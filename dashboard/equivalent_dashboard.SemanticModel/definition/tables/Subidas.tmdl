@@ -1,0 +1,37 @@
+/// Subidas de precio por mes y confianza (price_uplift_monthly.csv)
+table Subidas
+	lineageTag: 54ab9695-06fc-4689-b9d0-b0b20bf67909
+
+	column month
+		dataType: string
+		lineageTag: f3112f42-325d-4f9b-aa34-678e3571a712
+		sourceColumn: month
+
+	column uplift_conf
+		dataType: string
+		lineageTag: c11cb6fa-0b56-4cce-9a09-5759632dc002
+		sourceColumn: uplift_conf
+
+	column events
+		dataType: int64
+		lineageTag: 31819235-9796-43e4-b8e6-f5375454b469
+		summarizeBy: sum
+		sourceColumn: events
+
+	column amount_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: ccaa4112-1765-4945-abf6-c4f5a36ad169
+		summarizeBy: sum
+		sourceColumn: amount_cop
+
+	partition Subidas = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\price_uplift_monthly.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"month", type text}, {"uplift_conf", type text}, {"events", Int64.Type}, {"amount_cop", type number}}, "en-US")
+				in
+				    Tipos
+

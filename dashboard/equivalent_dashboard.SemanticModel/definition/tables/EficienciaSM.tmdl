@@ -1,0 +1,87 @@
+/// Magic number, CAC variable y gasto por trimestre (sm_efficiency_quarterly.csv)
+table EficienciaSM
+	lineageTag: 5dfd843b-24c0-4123-992a-8c696a83272d
+
+	column quarter
+		dataType: string
+		lineageTag: 46bf6871-be9f-460e-9fbd-d01db10b66b2
+		sourceColumn: quarter
+
+	column sm_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 85b312a6-dd11-4462-bdfc-064402cbc3c8
+		summarizeBy: sum
+		sourceColumn: sm_cop
+
+	column sm_variable_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 74539638-cfca-4dd3-a359-9ca4e6031abf
+		summarizeBy: sum
+		sourceColumn: sm_variable_cop
+
+	column sm_fixed_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 3eaca4f8-e15e-432e-aca0-027dc4e72518
+		summarizeBy: sum
+		sourceColumn: sm_fixed_cop
+
+	column delta_arr_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 764bb9dc-5000-4dd9-9278-b10b73fe4604
+		summarizeBy: sum
+		sourceColumn: delta_arr_cop
+
+	column magic_number
+		dataType: double
+		formatString: 0.00
+		lineageTag: 8f1bedcb-e0fc-4fa2-9ae9-dbccc46796cf
+		summarizeBy: none
+		sourceColumn: magic_number
+
+	column new_customers
+		dataType: int64
+		lineageTag: 42ec8120-b16d-47d6-8af0-2270b8545cfb
+		summarizeBy: sum
+		sourceColumn: new_customers
+
+	column new_mrr_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 6e7aea21-0802-41b7-9394-01a7c4271685
+		summarizeBy: sum
+		sourceColumn: new_mrr_cop
+
+	column magic_number_new_only
+		dataType: double
+		formatString: 0.00
+		lineageTag: 25f30cbe-d44a-4512-829f-8b1fe8509437
+		summarizeBy: none
+		sourceColumn: magic_number_new_only
+
+	column cac_variable_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: b85d18c1-3d51-4ef9-8eec-f6b464a4c030
+		summarizeBy: none
+		sourceColumn: cac_variable_cop
+
+	column complete
+		dataType: boolean
+		lineageTag: 2fcfcb84-2fb2-49b0-94f7-77619f2fca7a
+		summarizeBy: none
+		sourceColumn: complete
+
+	partition EficienciaSM = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\sm_efficiency_quarterly.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"quarter", type text}, {"sm_cop", type number}, {"sm_variable_cop", type number}, {"sm_fixed_cop", type number}, {"delta_arr_cop", type number}, {"magic_number", type number}, {"new_customers", Int64.Type}, {"new_mrr_cop", type number}, {"magic_number_new_only", type number}, {"cac_variable_cop", type number}, {"complete", type logical}}, "en-US")
+				in
+				    Tipos
+

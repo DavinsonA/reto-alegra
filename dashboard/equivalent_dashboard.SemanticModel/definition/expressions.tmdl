@@ -1,0 +1,4 @@
+/// Carpeta con las tablas agregadas (app/data). Cambiar al clonar el repositorio.
+expression RutaDatos = "C:\Users\Davinson\Desktop\alegra\reto\app\data" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: b723b6c2-78bb-4bb4-a5b8-c984799d9214
+

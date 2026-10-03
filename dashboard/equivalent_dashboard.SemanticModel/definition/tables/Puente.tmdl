@@ -1,0 +1,342 @@
+/// Movimientos de MRR por mes y escenario (bridge_monthly.csv)
+table Puente
+	lineageTag: 9f3900eb-518b-498b-9ef9-98e8387aafc8
+
+	measure Escenario = "Corregido (N=2)"
+		isHidden
+		displayFolder: Base
+		lineageTag: d634102f-3547-4bae-b845-00b1255a813e
+
+	/// MRR de cierre del mes (modelo corregido)
+	measure 'MRR cierre' = CALCULATE(MAX(Puente[mrr_close]), Puente[scenario] = "Corregido (N=2)")
+		formatString: #,0.0,," MM"
+		displayFolder: MRR
+		lineageTag: 550a60de-72df-40f0-a452-8845a5da0d5c
+
+	measure 'MRR mes anterior' = CALCULATE([MRR cierre], PREVIOUSMONTH(Calendario[Date]))
+		formatString: #,0.0,," MM"
+		displayFolder: MRR
+		lineageTag: e94f6b07-595b-41bf-80ea-4400db15ba7a
+
+	measure 'MRR hace 12 meses' = CALCULATE([MRR cierre], DATEADD(Calendario[Date], -12, MONTH))
+		formatString: #,0.0,," MM"
+		displayFolder: MRR
+		lineageTag: 4bd08090-910b-4de9-a807-7a459bc6936e
+
+	measure 'Var % vs mes anterior' = DIVIDE([MRR cierre] - [MRR mes anterior], [MRR mes anterior])
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: MRR
+		lineageTag: 9ac5a44d-0b73-441d-a679-16486a854689
+
+	measure 'MRR neto nuevo' = [MRR cierre] - [MRR mes anterior]
+		formatString: +#,0.0,," MM";-#,0.0,," MM";0
+		displayFolder: MRR
+		lineageTag: 27a6c0c8-6cc4-4b10-b738-1e004e9b29cb
+
+	/// Suma de los movimientos del contexto (modelo corregido)
+	measure 'Monto movimiento' = CALCULATE(SUM(Puente[amount_cop]), Puente[scenario] = "Corregido (N=2)")
+		formatString: #,0.00,," MM"
+		displayFolder: Movimientos
+		lineageTag: f416d4b2-8944-4c61-882b-6423632bbe5d
+
+	measure Nuevos = CALCULATE([Monto movimiento], Puente[movement] = "new")
+		formatString: #,0.00,," MM"
+		displayFolder: Movimientos
+		lineageTag: d4692e7b-b893-448b-bc8b-b422eb56b391
+
+	measure Expansión = CALCULATE([Monto movimiento], Puente[movement] = "expansion")
+		formatString: #,0.00,," MM"
+		displayFolder: Movimientos
+		lineageTag: dbb3a200-4884-4a9c-8ddf-88b602e5de9b
+
+	measure Reactivación = CALCULATE([Monto movimiento], Puente[movement] = "reactivation")
+		formatString: #,0.00,," MM"
+		displayFolder: Movimientos
+		lineageTag: d718dd03-ef07-4968-89d7-37443453127c
+
+	measure Contracción = CALCULATE([Monto movimiento], Puente[movement] = "contraction")
+		formatString: #,0.00,," MM"
+		displayFolder: Movimientos
+		lineageTag: fcc88a44-acfa-43f1-902c-b81233d1e58b
+
+	measure Churn = CALCULATE([Monto movimiento], Puente[movement] = "churn")
+		formatString: #,0.00,," MM"
+		displayFolder: Movimientos
+		lineageTag: 279a7176-3418-4bd3-bfca-e240a449b2ba
+
+	measure 'Subida de precio' = CALCULATE([Monto movimiento], Puente[movement] = "price_uplift")
+		formatString: #,0.00,," MM"
+		displayFolder: Movimientos
+		lineageTag: d951d710-4f2d-428d-ab12-2beebf2dd999
+
+	/// Comportamiento del cliente: nuevos + expansión + reactivación + contracción + churn
+	measure Cliente = [Nuevos] + [Expansión] + [Reactivación] + [Contracción] + [Churn]
+		formatString: +#,0.0,," MM";-#,0.0,," MM";0
+		displayFolder: Dos capas
+		lineageTag: 6b63d70e-dd2d-49e6-8297-7d684a450f6b
+
+	/// Decisión de Finora: subidas de precio
+	measure Pricing = [Subida de precio]
+		formatString: +#,0.0,," MM";-#,0.0,," MM";0
+		displayFolder: Dos capas
+		lineageTag: cb88ef59-ace8-44c0-98bd-6511805a5df9
+
+	/// Sin dato hasta registrar los descuentos (modelo de dos capas)
+	measure Descuentos = "sin dato"
+		displayFolder: Dos capas
+		lineageTag: 9e12a7c9-fc19-4eda-bef0-dab1f3038332
+
+	measure 'Clientes nuevos' = CALCULATE(SUM(ClientesMov[customers]), ClientesMov[movement] = "new", ClientesMov[scenario] = "Corregido (N=2)")
+		formatString: #,0
+		displayFolder: Clientes
+		lineageTag: f25c37ba-08f2-49c5-8ff1-348792decb22
+
+	measure 'Clientes churn' = CALCULATE(SUM(ClientesMov[customers]), ClientesMov[movement] = "churn", ClientesMov[scenario] = "Corregido (N=2)")
+		formatString: #,0
+		displayFolder: Clientes
+		lineageTag: 21e1ee33-eead-470b-9bab-918e9251e80a
+
+	measure 'Clientes reactivación' = CALCULATE(SUM(ClientesMov[customers]), ClientesMov[movement] = "reactivation", ClientesMov[scenario] = "Corregido (N=2)")
+		formatString: #,0
+		displayFolder: Clientes
+		lineageTag: 002774c3-399d-44bc-84f4-c6c287b29156
+
+	/// MRR de clientes con mora abierta al cierre: se confirma como churn o se recupera en 2 meses
+	measure 'MRR en mora' = CALCULATE(SUM(Estado[mrr_cop]), Estado[status] = "delinquent_open")
+		formatString: #,0.0,," MM"
+		displayFolder: En confirmación
+		lineageTag: c7841982-8de8-4339-ba70-b8eff8e9e781
+
+	measure 'Clientes en mora' = CALCULATE(SUM(Estado[customers]), Estado[status] = "delinquent_open")
+		formatString: #,0
+		displayFolder: En confirmación
+		lineageTag: 1b188c21-c82f-423b-b194-0f610031e382
+
+	measure 'Mora % del MRR' = DIVIDE([MRR en mora], [MRR cierre])
+		formatString: 0.0%
+		displayFolder: En confirmación
+		lineageTag: 55e3506a-72b3-4a82-a55a-d691bc482727
+
+	/// 1 si el mes está dentro de los 2 últimos (su churn aún no se confirma)
+	measure 'Churn en confirmación' = VAR UltimoMes = CALCULATE(MAX(Calendario[Date]), ALL(Calendario), Puente[scenario] = "Corregido (N=2)") RETURN IF(MAX(Calendario[Date]) >= EDATE(UltimoMes, -1), 1, 0)
+		displayFolder: En confirmación
+		lineageTag: a41ee246-7669-469c-983a-284e9086d8a4
+
+	measure 'Subidas en confirmación' = CALCULATE(SUM(Subidas[amount_cop]), Subidas[uplift_conf] = "pending")
+		formatString: #,0.0,," MM"
+		displayFolder: En confirmación
+		lineageTag: db458301-d527-4b6a-85c2-f8e1582aca21
+
+	measure 'Clientes con subida en confirmación' = CALCULATE(SUM(Subidas[events]), Subidas[uplift_conf] = "pending")
+		formatString: #,0
+		displayFolder: En confirmación
+		lineageTag: 65111e6a-1ce7-4704-b56c-1c22d1a0cae9
+
+	measure 'Prepagos en confirmación' = CALCULATE(SUM(CajaNoMRR[amount_cop]), CajaNoMRR[extra_kind] = "prepaid_pending")
+		formatString: #,0.0,," MM"
+		displayFolder: En confirmación
+		lineageTag: e9d89fc3-930f-4460-bea6-4b8d7e98bc78
+
+	measure 'Pagos prepago en confirmación' = CALCULATE(SUM(CajaNoMRR[events]), CajaNoMRR[extra_kind] = "prepaid_pending")
+		formatString: #,0
+		displayFolder: En confirmación
+		lineageTag: 96302169-9d96-4699-99f1-aee2f1b8c68e
+
+	/// Movimientos del cliente con señal XmR en el mes
+	measure 'Señales del mes' = CALCULATE(COUNTROWS(XmR), XmR[metric] IN {"new", "expansion", "reactivation", "contraction", "churn"}, XmR[signal] = TRUE())
+		formatString: 0
+		displayFolder: Señal
+		lineageTag: 63462633-741a-426a-a174-2f4c5555bec5
+
+	/// Texto de estado para la métrica XmR del contexto (usar con XmR[Métrica])
+	measure 'Estado XmR' = VAR r = MAX(XmR[reason]) VAR d = MAX(XmR[direction]) RETURN IF(ISBLANK(r) || r = "", "Dentro de lo normal", "Señal: " & r & ", " & d & " de lo normal")
+		displayFolder: Señal
+		lineageTag: cda9ef3e-6607-4fd5-b650-d8e6e9bfca91
+
+	measure 'Estado neto' = CALCULATE([Estado XmR], XmR[metric] = "net")
+		displayFolder: Señal
+		lineageTag: fc537d5e-a012-448a-9cae-d056cbe86269
+
+	measure 'Estado clientes nuevos' = CALCULATE([Estado XmR], XmR[metric] = "new_count")
+		displayFolder: Señal
+		lineageTag: 3ce8a92e-eab1-454e-8c07-97394132a7ee
+
+	measure 'Estado churn' = IF([Churn en confirmación] = 1, "En confirmación", CALCULATE([Estado XmR], XmR[metric] = "churn"))
+		displayFolder: Señal
+		lineageTag: 79f70da0-bc40-415d-80c7-ec64fca7f06b
+
+	measure 'Reactivación promedio 12 m' = CALCULATE([Reactivación], DATESINPERIOD(Calendario[Date], EDATE(MAX(Calendario[Date]), -1), -12, MONTH)) / 12
+		formatString: #,0.00,," MM"
+		displayFolder: Señal
+		lineageTag: 367a4a11-f09e-4d20-a196-17de884b5128
+
+	/// 1 si la reactivación del mes dobla el promedio de 12 meses
+	measure 'Reactivación alta' = IF([Reactivación] > 2 * MAX([Reactivación promedio 12 m], 1), 1, 0)
+		displayFolder: Señal
+		lineageTag: 884915e1-5fd4-4aa1-9be5-8fbec08092ec
+
+	/// Dueños que actúan este mes según las señales y la mora
+	measure Dueños = VAR porSenal = CALCULATE(CONCATENATEX(VALUES(XmR[metric]), SWITCH(XmR[metric], "new", "Marketing y Ventas", "expansion", "CS", "reactivation", "CS y Cobranza", "contraction", "CS y Finanzas", "churn", "CS y Cobranza"), ", "), XmR[metric] IN {"new", "expansion", "reactivation", "contraction", "churn"}, XmR[signal] = TRUE()) VAR mora = IF([Churn en confirmación] = 1 && [MRR en mora] > 0, "Cobranza", BLANK()) VAR react = IF([Reactivación alta] = 1, "CS y Cobranza", BLANK()) RETURN CONCATENATEX(FILTER(DISTINCT({porSenal, mora, react}), NOT ISBLANK([Value]) && [Value] <> ""), [Value], ", ")
+		displayFolder: Señal
+		lineageTag: 0b717241-fd0d-4a94-96bc-e18bdeb7b05e
+
+	/// Lo que se lee en 3 segundos: señales, mora y dueños
+	measure 'Línea de estado' = VAR n = [Señales del mes] VAR s = IF(n = 0, "Sin señales: variación rutinaria", n & IF(n = 1, " señal", " señales")) VAR m = IF([Churn en confirmación] = 1, " · mora " & FORMAT([Mora % del MRR] * 100, "0.0") & " % del MRR" & IF([Mora % del MRR] > 0.03, " (regla activa, más de 3 %)", ""), "") VAR d = IF(ISBLANK([Dueños]), " · nada que investigar este mes", " · dueños: " & [Dueños]) RETURN s & m & d
+		displayFolder: Señal
+		lineageTag: 1c88f2d6-cc9f-4930-8278-28696e2839ac
+
+	/// Qué cambió · en confirmación · señales y acción
+	measure 'Lectura del mes' = VAR cambio = "Qué cambió: el MRR " & IF([MRR neto nuevo] >= 0, "subió ", "bajó ") & FORMAT(ABS([MRR neto nuevo]) / 1e6, "#,0.0") & " MM: cliente " & FORMAT([Cliente] / 1e6, "+#,0.0;-#,0.0") & " MM, pricing " & FORMAT([Pricing] / 1e6, "+#,0.0;-#,0.0") & " MM, descuentos sin dato." VAR conf = IF([Churn en confirmación] = 1 || [Subidas en confirmación] > 0 || [Prepagos en confirmación] > 0, UNICHAR(10) & "En confirmación: " & IF([Churn en confirmación] = 1, FORMAT([MRR en mora] / 1e6, "#,0.0") & " MM de MRR está en mora sin confirmar (" & [Clientes en mora] & " clientes); ", "") & IF([Subidas en confirmación] > 0, "subidas de precio por " & FORMAT([Subidas en confirmación] / 1e6, "#,0.0") & " MM en " & [Clientes con subida en confirmación] & " clientes; ", "") & IF([Prepagos en confirmación] > 0, FORMAT([Prepagos en confirmación] / 1e6, "#,0.0") & " MM de caja en " & [Pagos prepago en confirmación] & " pagos grandes que pueden ser prepagos. ", "") & "Qué hacemos: Cobranza gestiona la mora antes de que se confirme como churn.", "") VAR senales = CALCULATE(CONCATENATEX(VALUES(XmR[metric]), SWITCH(XmR[metric], "new", "Nuevos", "expansion", "Expansión", "reactivation", "Reactivación", "contraction", "Contracción", "churn", "Churn") & ": " & CALCULATE(MAX(XmR[reason])) & ", " & CALCULATE(MAX(XmR[direction])) & " de lo normal.", " "), XmR[metric] IN {"new", "expansion", "reactivation", "contraction", "churn"}, XmR[signal] = TRUE()) VAR react = IF([Reactivación alta] = 1, " Reactivación alta: " & FORMAT([Reactivación] / 1e6, "#,0.0") & " MM en " & [Clientes reactivación] & " clientes (promedio de 12 meses: " & FORMAT([Reactivación promedio 12 m] / 1e6, "#,0.0") & " MM).", "") RETURN cambio & conf & UNICHAR(10) & IF(ISBLANK(senales) && react = "", "Señales: ningún movimiento salió de su rango normal; variación rutinaria.", "Señales y acción: " & senales & react)
+		displayFolder: Señal
+		lineageTag: f5475ec7-5e96-4a94-bd13-145a2bf0c006
+
+	/// ΔARR del trimestre ÷ S&M del trimestre anterior; referencia 0,75
+	measure 'Magic number' = CALCULATE(MAX(EficienciaSM[magic_number]), EficienciaSM[complete] = TRUE())
+		formatString: 0.00
+		displayFolder: Eficiencia S&M
+		lineageTag: ec8aea99-0ad3-4055-806b-1aff9ba271f0
+
+	measure 'Magic number último trimestre cerrado' = VAR q = CALCULATE(MAX(EficienciaSM[quarter]), ALL(Calendario), EficienciaSM[complete] = TRUE()) RETURN CALCULATE(MAX(EficienciaSM[magic_number]), ALL(Calendario), EficienciaSM[quarter] = q)
+		formatString: 0.00
+		displayFolder: Eficiencia S&M
+		lineageTag: 206d5e63-7420-432f-a0a7-08d61c3c21bb
+
+	/// S&M de adquisición de 3 meses ÷ clientes nuevos de 3 meses
+	measure 'CAC variable 3 m' = CALCULATE(MAX(XmR[value]), XmR[metric] = "cac3_variable")
+		formatString: #,0.00,," MM"
+		displayFolder: Eficiencia S&M
+		lineageTag: 10c8a605-795b-4cba-8d2e-86d846c7aa43
+
+	measure 'S&M del mes' = SUM(SM[sm_total_cop])
+		formatString: #,0,," MM"
+		displayFolder: Eficiencia S&M
+		lineageTag: 3683d68a-b3a8-452c-8cc3-7143691c2b53
+
+	/// Valor de la métrica XmR del contexto, en MM
+	measure 'Valor XmR' = MAX(XmR[value]) / 1e6
+		formatString: #,0.00,,
+		displayFolder: Señal
+		lineageTag: dcc60102-b2f4-46cf-bfcf-7bc129a90c09
+
+	measure 'Centro XmR' = MAX(XmR[center]) / 1e6
+		formatString: #,0.00,,
+		displayFolder: Señal
+		lineageTag: 0eb9559c-9b4f-4a3a-b13e-2e20c9314934
+
+	measure 'LCL XmR' = MAX(XmR[lcl]) / 1e6
+		formatString: #,0.00,,
+		displayFolder: Señal
+		lineageTag: 488ce618-9328-4547-8861-9922a835367f
+
+	measure 'UCL XmR' = MAX(XmR[ucl]) / 1e6
+		formatString: #,0.00,,
+		displayFolder: Señal
+		lineageTag: 27fb3624-1712-46e3-8e7f-e2e9aa0c5916
+
+	/// Valor solo en los meses con señal, para marcarlos
+	measure 'Señal XmR (punto)' = CALCULATE(MAX(XmR[value]), XmR[signal] = TRUE()) / 1e6
+		formatString: #,0.00,,
+		displayFolder: Señal
+		lineageTag: 5d9cd3fd-a67c-4bbf-9b05-de012722af87
+
+	measure 'KPI cierre título' = "MRR DE CIERRE · " & UPPER(FORMAT(MAX(Calendario[Date]), "mmm yyyy"))
+		displayFolder: KPI
+		lineageTag: 22e454e2-316f-4f04-88cc-5da25763a53d
+
+	measure 'KPI cierre pie' = FORMAT([Var % vs mes anterior] * 100, "+0.0;-0.0;0.0") & " % vs. mes anterior · " & FORMAT([MRR mes anterior] / 1e6, "#,0.0") & " MM en " & FORMAT(EDATE(MAX(Calendario[Date]), -1), "mmm yyyy") & IF(ISBLANK([MRR hace 12 meses]), "", " · " & FORMAT([MRR hace 12 meses] / 1e6, "#,0.0") & " MM hace 12 meses")
+		displayFolder: KPI
+		lineageTag: 3abff934-2f25-453c-b7a5-77335ac90c2e
+
+	measure 'KPI neto pie' = [Estado neto] & " · vs. " & FORMAT(CALCULATE([MRR neto nuevo], PREVIOUSMONTH(Calendario[Date])) / 1e6, "+#,0.0;-#,0.0") & " MM el mes anterior"
+		displayFolder: KPI
+		lineageTag: 2b033837-9f5c-46fe-8599-7427891fd4d5
+
+	measure 'KPI churn título' = IF([Churn en confirmación] = 1, "CHURN DEL MES · EN CONFIRMACIÓN", "CHURN DEL MES")
+		displayFolder: KPI
+		lineageTag: da7773e7-edcd-477e-baa0-73fc74299bb1
+
+	measure 'KPI churn valor' = IF([Churn en confirmación] = 1, [MRR en mora], -[Churn])
+		formatString: #,0.0,," MM"
+		displayFolder: KPI
+		lineageTag: 555247df-3859-460f-9e44-2451e92b4f9f
+
+	measure 'KPI churn pie' = IF([Churn en confirmación] = 1, [Clientes en mora] & " clientes en mora · se confirma como churn o se recupera en 2 meses", [Clientes churn] & " clientes · " & [Estado churn])
+		displayFolder: KPI
+		lineageTag: 9fe7f57b-80b1-423e-8b6a-e007bb703e0f
+
+	measure 'KPI nuevos pie' = [Estado clientes nuevos] & " · " & FORMAT([Nuevos] / 1e6, "#,0.0") & " MM de MRR nuevo"
+		displayFolder: KPI
+		lineageTag: c6ea72f9-8b44-4810-81cc-9020087d9a13
+
+	measure 'Puente título' = "De " & FORMAT([MRR mes anterior] / 1e6, "#,0.0") & " MM a " & FORMAT([MRR cierre] / 1e6, "#,0.0") & " MM: cliente " & FORMAT([Cliente] / 1e6, "+#,0.0;-#,0.0") & " MM, pricing " & FORMAT([Pricing] / 1e6, "+#,0.0;-#,0.0") & " MM, descuentos sin dato"
+		displayFolder: KPI
+		lineageTag: 3d4848dd-f219-4dd5-9961-53f186a1c795
+
+	/// Monto del movimiento en millones (para la cascada)
+	measure 'Movimiento MM' = [Monto movimiento] / 1e6
+		formatString: #,0.00
+		displayFolder: Movimientos
+		lineageTag: 44c9d98d-fed3-4f3b-8237-583bd37fef8a
+
+	column month
+		dataType: string
+		lineageTag: 77874983-688f-4541-968c-9104308ce053
+		sourceColumn: month
+
+	column movement
+		dataType: string
+		isHidden
+		lineageTag: 605e3231-2641-4021-9ed8-dfa11b6700ba
+		sourceColumn: movement
+
+	column amount_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 00cb6cfd-b7cf-4e0f-83a3-00e84789007c
+		summarizeBy: sum
+		sourceColumn: amount_cop
+
+	column mrr_open
+		dataType: double
+		formatString: #,0
+		lineageTag: f12ce098-c084-4a29-a977-c53cf5836e0e
+		summarizeBy: none
+		sourceColumn: mrr_open
+
+	column mrr_close
+		dataType: double
+		formatString: #,0
+		lineageTag: 418ad2d0-d414-484c-ab9c-bbbf977d8d7d
+		summarizeBy: none
+		sourceColumn: mrr_close
+
+	column scenario
+		dataType: string
+		lineageTag: 151ceab2-6fd8-400d-b7a2-21badac4be4d
+		sourceColumn: scenario
+
+	column Movimiento
+		dataType: string
+		lineageTag: a8006bd3-474a-45da-ba33-609712223e94
+		sourceColumn: Movimiento
+		sortByColumn: OrdenMov
+
+	column OrdenMov
+		dataType: int64
+		isHidden
+		lineageTag: c7b7139d-396c-4e90-a877-f80dbce9a684
+		summarizeBy: none
+		sourceColumn: OrdenMov
+
+	partition Puente = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\bridge_monthly.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"month", type text}, {"movement", type text}, {"amount_cop", type number}, {"mrr_open", type number}, {"mrr_close", type number}, {"scenario", type text}}, "en-US"),
+				    Etiqueta = Table.AddColumn(Tipos, "Movimiento", each Record.FieldOrDefault([new="Nuevos", expansion="Expansión", price_uplift="Subida de precio", reactivation="Reactivación", contraction="Contracción", churn="Churn"], [movement], [movement]), type text),
+				    Orden = Table.AddColumn(Etiqueta, "OrdenMov", each Record.FieldOrDefault([new=1, expansion=2, reactivation=3, contraction=4, churn=5, price_uplift=6], [movement], 9), Int64.Type)
+				in
+				    Orden
+

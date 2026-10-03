@@ -1,0 +1,36 @@
+/// Clientes por movimiento y mes (movement_counts_monthly.csv)
+table ClientesMov
+	lineageTag: e9d668d0-44bc-42c4-bfcc-15e393d42e5c
+
+	column month
+		dataType: string
+		lineageTag: 0230be4f-d531-43cf-aded-4d43699de596
+		sourceColumn: month
+
+	column movement
+		dataType: string
+		lineageTag: 863e828b-294d-4f6a-b059-1413384a9de5
+		sourceColumn: movement
+
+	column customers
+		dataType: int64
+		formatString: #,0
+		lineageTag: 5d5fc3a2-e7e1-4a33-bae4-6f851c221fe3
+		summarizeBy: sum
+		sourceColumn: customers
+
+	column scenario
+		dataType: string
+		lineageTag: 1b938a9d-9301-427d-9240-fa534129b070
+		sourceColumn: scenario
+
+	partition ClientesMov = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\movement_counts_monthly.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"month", type text}, {"movement", type text}, {"customers", Int64.Type}, {"scenario", type text}}, "en-US")
+				in
+				    Tipos
+

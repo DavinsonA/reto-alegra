@@ -1,0 +1,71 @@
+/// Señal frente a ruido por movimiento y mes, calculado por el motor (xmr_monthly.csv)
+table XmR
+	lineageTag: 9617f164-d79d-4512-8346-8fd3b99b68ef
+
+	column month
+		dataType: string
+		lineageTag: 14ccc950-cf8b-4078-b377-239770ac76f6
+		sourceColumn: month
+
+	column metric
+		dataType: string
+		lineageTag: 19cce5b7-561f-4f8c-8551-76c846ce8bee
+		sourceColumn: metric
+
+	column value
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 265b910d-7ad8-4590-84ce-593dcc82c13b
+		summarizeBy: none
+		sourceColumn: value
+
+	column center
+		dataType: double
+		lineageTag: 79ebef7f-c3ae-4dfd-8c7f-91fe777c1672
+		summarizeBy: none
+		sourceColumn: center
+
+	column lcl
+		dataType: double
+		lineageTag: 8c29ffb7-768a-4652-ae5c-76593fb468b2
+		summarizeBy: none
+		sourceColumn: lcl
+
+	column ucl
+		dataType: double
+		lineageTag: 161efabf-320a-44d8-b9d4-98313a7c138a
+		summarizeBy: none
+		sourceColumn: ucl
+
+	column signal
+		dataType: boolean
+		lineageTag: a8d3223a-f1e4-4837-a0da-a0c81f81fc6c
+		summarizeBy: none
+		sourceColumn: signal
+
+	column direction
+		dataType: string
+		lineageTag: a9dfc17e-114e-40bd-bfc0-6213a11209d4
+		sourceColumn: direction
+
+	column reason
+		dataType: string
+		lineageTag: a6b01f2d-63f9-43fa-9e1d-5d60082e50ac
+		sourceColumn: reason
+
+	column Métrica
+		dataType: string
+		lineageTag: 2801e62c-e43d-4fe8-9bb9-3bb873213be0
+		sourceColumn: Métrica
+
+	partition XmR = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\xmr_monthly.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"month", type text}, {"metric", type text}, {"value", type number}, {"center", type number}, {"lcl", type number}, {"ucl", type number}, {"signal", type logical}, {"direction", type text}, {"reason", type text}}, "en-US"),
+				    Etiqueta = Table.AddColumn(Tipos, "Métrica", each Record.FieldOrDefault([net="MRR neto nuevo", new="Nuevos", expansion="Expansión", reactivation="Reactivación", contraction="Contracción", churn="Churn", new_count="Clientes nuevos", cac3_variable="CAC variable 3 m"], [metric], [metric]), type text)
+				in
+				    Etiqueta
+

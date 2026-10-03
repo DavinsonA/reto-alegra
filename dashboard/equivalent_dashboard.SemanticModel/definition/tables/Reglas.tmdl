@@ -1,0 +1,33 @@
+/// Dueño, regla de alerta y acción por métrica (revisión mensual)
+table Reglas
+	lineageTag: 02e53ac3-1649-4aee-bfc0-3ca7042e8fab
+
+	column Orden
+		lineageTag: 28053939-a0de-4eea-b73b-fcdb74fdf6f8
+		isNameInferred
+		sourceColumn: [Orden]
+
+	column Métrica
+		lineageTag: c80a2b82-94ee-43a3-af85-6209d1f28ca4
+		isNameInferred
+		sourceColumn: [Métrica]
+
+	column Dueño
+		lineageTag: 796480af-87ca-4e83-87b8-25349636c724
+		isNameInferred
+		sourceColumn: [Dueño]
+
+	column 'Regla de alerta'
+		lineageTag: fbe0b19e-a2a0-41d2-8f78-e26209d9d890
+		isNameInferred
+		sourceColumn: [Regla de alerta]
+
+	column Acción
+		lineageTag: 1e6caeef-6db1-47a0-b370-ae957d9683e5
+		isNameInferred
+		sourceColumn: [Acción]
+
+	partition Reglas = calculated
+		mode: import
+		source = DATATABLE("Orden", INTEGER, "Métrica", STRING, "Dueño", STRING, "Regla de alerta", STRING, "Acción", STRING, {{1, "MRR nuevo", "Marketing + Ventas", "Señal abajo o 3 meses bajo la línea central", "Revisar mezcla de canal y ticket de entrada"}, {2, "Expansión", "Customer Success", "Señal abajo", "Revisar adopción y upgrades; campañas de expansión"}, {3, "Reactivación", "CS + Cobranza", "Más del doble del promedio de 12 meses", "Confirmar si son retornos reales o pagos de mora tardíos"}, {4, "Contracción", "CS + Finanzas", "Señal arriba", "Separar downgrade de descuento; revisar cuentas grandes"}, {5, "Churn", "CS + Cobranza", "Señal arriba", "Separar voluntario de mora; plan de recuperación"}, {6, "MRR en mora", "Cobranza", "Más de 3 % del MRR", "Gestión de cobro antes de confirmar churn (N = 2 meses)"}, {7, "Descuentos (nuevo)", "Finanzas + Deal desk", "Price realization < 95 %", "Revisar aprobaciones y vencimientos"}, {8, "Eficiencia del S&M (nuevo)", "CFO + CRO", "Magic number < 0,5 dos trimestres seguidos, o CAC variable en señal arriba", "No escalar canales; revisar mezcla de gasto y confirmar unidades"}})
+

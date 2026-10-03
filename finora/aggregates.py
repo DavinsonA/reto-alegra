@@ -203,6 +203,8 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
     ]
     tables["data_quality"] = pd.DataFrame(dq, columns=["hallazgo", "magnitud", "tratamiento"])
 
+    tables.update(powerbi_tables(cm, tables, sm))
+
     for name, df in tables.items():
         df = df.copy()
         for col in df.columns:
@@ -211,3 +213,69 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
         assert "customer_id" not in df.columns, f"{name} tiene detalle por cliente"
         df.to_csv(out_dir / f"{name}.csv", index=False)
     return tables
+
+
+def _xmr_long(series: dict[str, pd.Series], baseline: int, key: str) -> pd.DataFrame:
+    from finora.xmr import xmr
+    out = []
+    for metric, v in series.items():
+        x = xmr(v.dropna(), baseline=baseline)
+        x[key] = [str(i) for i in x.index]
+        out.append(x.assign(metric=metric)[[key, "metric", "value", "center", "lcl", "ucl", "signal", "direction", "reason"]])
+    return pd.concat(out, ignore_index=True)
+
+
+def powerbi_tables(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """Lo que las apps calculan en vivo, como tablas: XmR mensual, funnel sintético (semanal y mensual), estancados y mezcla."""
+    from finora import funnel as F
+    from finora.funnel_synth import generate
+
+    out: dict[str, pd.DataFrame] = {}
+    b = tables["bridge_monthly"]
+    b = b[b["scenario"] == "Corregido (N=2)"]
+    piv = b.pivot_table(index="month", columns="movement", values="amount_cop").reindex(columns=ALL_MOVES).fillna(0)
+    piv.index = piv.index.astype(str)
+    mrr = b.groupby("month")["mrr_close"].first()
+    mrr.index = mrr.index.astype(str)
+    months = [m for m in piv.index if m >= str(WINDOW_START)]
+    pending = months[-2:]
+    cnt = tables["movement_counts_monthly"]
+    cnt = cnt[cnt["scenario"] == "Corregido (N=2)"].pivot_table(index="month", columns="movement", values="customers")
+    cnt.index = cnt.index.astype(str)
+    w = piv.loc[months]
+    new_count = cnt.reindex(months)["new"].fillna(0)
+    smm = sm.copy()
+    smm["month"] = smm["month"].astype(str)
+    var = smm.set_index("month")[["PaidMedia", "PublicidadNoWeb", "Freelance", "Travel"]].sum(axis=1).reindex(months)
+    series = {
+        "net": mrr.loc[months] - mrr.shift(1).loc[months],
+        "new": w["new"], "expansion": w["expansion"], "reactivation": w["reactivation"],
+        "contraction": -w["contraction"], "churn": (-w["churn"]).where(~w.index.isin(pending)),
+        "new_count": new_count,
+        "cac3_variable": (var.rolling(3).sum() / new_count.rolling(3).sum()),
+    }
+    out["xmr_monthly"] = _xmr_long(series, 18, "month")
+
+    nc = tables["new_customers_monthly"]
+    nc = nc[nc["month"].astype(str) >= "2024-01"]
+    ticket = round(nc["new_mrr_cop"].sum() / nc["new_customers"].sum())
+    leads, ev = generate(target_ticket=ticket)
+    as_of = pd.Timestamp("2024-10-31")
+    r = F.reach_table(leads, ev)
+    metrics = ["leads", "high_fit", "speed_p50", "sla_1h", "work_to_eng", "sql_to_won", "new_customers", "new_mrr", "ticket"]
+    parts = []
+    for freq, base in (("W", 26), ("M", 12)):
+        pm = F.period_metrics(r, as_of, freq)
+        pm.index = pm.index.strftime("%Y-%m-%d")
+        x = _xmr_long({k: pm[k] for k in metrics if k != "ticket"}, base, "period")
+        x.insert(0, "freq", freq)
+        parts.append(x.merge(pm[["ticket"]].reset_index(names="period"), on="period", how="left"))
+    out["funnel_xmr"] = pd.concat(parts, ignore_index=True)
+    stl = F.stalled(r, ev, as_of)
+    by_owner = stl.pivot_table(index="owner", columns="stage", values="lead_id", aggfunc="count", fill_value=0)
+    by_owner["total"] = by_owner.sum(axis=1)
+    out["funnel_stalled_by_owner"] = by_owner.reset_index()
+    rw = r[r["path"] == "sdr_full"].assign(cohort=lambda d: d["created_at"].dt.to_period("W"))
+    mature = sorted(c for c in rw["cohort"].unique() if c.end_time + pd.Timedelta(days=30) <= as_of)
+    out["funnel_kitagawa_channel"] = F.kitagawa(rw, "New", "Engaged", 30, mature[-18:-6], mature[-6:]).reset_index(names="channel")
+    return out

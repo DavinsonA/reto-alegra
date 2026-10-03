@@ -1,0 +1,32 @@
+relationship Calendario_Puente
+	fromColumn: Puente.month
+	toColumn: Calendario.MesKey
+
+relationship Calendario_ClientesMov
+	fromColumn: ClientesMov.month
+	toColumn: Calendario.MesKey
+
+relationship Calendario_Estado
+	fromColumn: Estado.month
+	toColumn: Calendario.MesKey
+
+relationship Calendario_Subidas
+	fromColumn: Subidas.month
+	toColumn: Calendario.MesKey
+
+relationship Calendario_CajaNoMRR
+	fromColumn: CajaNoMRR.month
+	toColumn: Calendario.MesKey
+
+relationship Calendario_XmR
+	fromColumn: XmR.month
+	toColumn: Calendario.MesKey
+
+relationship Calendario_SM
+	fromColumn: SM.month
+	toColumn: Calendario.MesKey
+
+relationship Calendario_EficienciaSM
+	fromColumn: Calendario.Trimestre
+	toColumn: EficienciaSM.quarter
+

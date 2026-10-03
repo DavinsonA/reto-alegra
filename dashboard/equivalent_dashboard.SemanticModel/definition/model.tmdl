@@ -1,0 +1,29 @@
+model Model
+	culture: es-ES
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-CO
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode","MCP-PBIModeling"]
+
+ref table Puente
+ref table ClientesMov
+ref table Estado
+ref table Subidas
+ref table CajaNoMRR
+ref table XmR
+ref table SM
+ref table EficienciaSM
+ref table FunnelXmR
+ref table FunnelEstancados
+ref table FunnelMezcla
+ref table Calendario
+ref table Reglas
+
+ref cultureInfo es-ES
+

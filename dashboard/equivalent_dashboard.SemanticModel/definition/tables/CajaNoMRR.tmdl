@@ -1,0 +1,37 @@
+/// Caja que no es MRR, por tipo y mes (nonmrr_cash_monthly.csv)
+table CajaNoMRR
+	lineageTag: ac6b8bae-7bb9-4241-9353-5b17cc5b4ae9
+
+	column month
+		dataType: string
+		lineageTag: 74110c52-2bfb-4dfc-aaf7-c88c66827a00
+		sourceColumn: month
+
+	column extra_kind
+		dataType: string
+		lineageTag: 46cecf6d-bfeb-41ec-92b7-9a3c29fa4e0b
+		sourceColumn: extra_kind
+
+	column events
+		dataType: int64
+		lineageTag: 7a1b069b-eb72-4104-8780-2f0bc37c849f
+		summarizeBy: sum
+		sourceColumn: events
+
+	column amount_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 82754599-d1cb-4075-9df2-f68eca8d979b
+		summarizeBy: sum
+		sourceColumn: amount_cop
+
+	partition CajaNoMRR = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\nonmrr_cash_monthly.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"month", type text}, {"extra_kind", type text}, {"events", Int64.Type}, {"amount_cop", type number}}, "en-US")
+				in
+				    Tipos
+

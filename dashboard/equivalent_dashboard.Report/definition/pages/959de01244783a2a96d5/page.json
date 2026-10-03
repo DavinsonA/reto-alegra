@@ -1,0 +1,66 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "959de01244783a2a96d5",
+  "displayName": "Mensual del MRR · CFO",
+  "displayOption": "FitToWidth",
+  "height": 1900,
+  "width": 1920,
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#FAFBFC'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "592582f3fe8cc9506178",
+      "target": "42a9b6d3a8d2347663f2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "592582f3fe8cc9506178",
+      "target": "f753be63ff74308dbc9f",
+      "type": "NoFilter"
+    },
+    {
+      "source": "592582f3fe8cc9506178",
+      "target": "50f5aa6fa90c76646c11",
+      "type": "NoFilter"
+    },
+    {
+      "source": "592582f3fe8cc9506178",
+      "target": "4da91f65954cce60bb8d",
+      "type": "NoFilter"
+    },
+    {
+      "source": "592582f3fe8cc9506178",
+      "target": "dbdbfa7da1a6b574c03a",
+      "type": "NoFilter"
+    },
+    {
+      "source": "592582f3fe8cc9506178",
+      "target": "bdc560dd1f92d3fe5069",
+      "type": "NoFilter"
+    }
+  ]
+}

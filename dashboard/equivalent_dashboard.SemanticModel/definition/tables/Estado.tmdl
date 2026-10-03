@@ -1,0 +1,37 @@
+/// Estado de la base por mes: activa, mora tolerada, mora abierta, churn (status_monthly.csv)
+table Estado
+	lineageTag: b1a35fc8-64c7-43e2-aa97-78af22e6af87
+
+	column month
+		dataType: string
+		lineageTag: e7199528-5561-4d44-b4ae-cdd4ecc2fe18
+		sourceColumn: month
+
+	column status
+		dataType: string
+		lineageTag: 14f6a7a0-725d-43d0-930b-02308817f67a
+		sourceColumn: status
+
+	column customers
+		dataType: int64
+		lineageTag: c51ed2be-d6aa-4eba-bccd-365d4edf29de
+		summarizeBy: sum
+		sourceColumn: customers
+
+	column mrr_cop
+		dataType: double
+		formatString: #,0
+		lineageTag: 8d5fb060-c36f-4da3-9653-0df3f731d11c
+		summarizeBy: sum
+		sourceColumn: mrr_cop
+
+	partition Estado = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "\status_monthly.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Encabezados, {{"month", type text}, {"status", type text}, {"customers", Int64.Type}, {"mrr_cop", type number}}, "en-US")
+				in
+				    Tipos
+

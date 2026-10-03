@@ -1,0 +1,191 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 900.16280892132716,
+            "y": 632.91041077683178
+          },
+          "nodeIndex": "CajaNoMRR",
+          "nodeLineageTag": "ac6b8bae-7bb9-4241-9353-5b17cc5b4ae9",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 500.7830579875988,
+            "y": 397.46596462605146
+          },
+          "nodeIndex": "Calendario",
+          "nodeLineageTag": "a46b317e-4cdb-4163-9ca5-c743e98e8a75",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 202.89872960131879,
+            "y": 182.98750729546759
+          },
+          "nodeIndex": "ClientesMov",
+          "nodeLineageTag": "e9d668d0-44bc-42c4-bfcc-15e393d42e5c",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 806.33313755346171,
+            "y": 67.088234474259025
+          },
+          "nodeIndex": "EficienciaSM",
+          "nodeLineageTag": "5dfd843b-24c0-4123-992a-8c696a83272d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 415.4474006020605
+          },
+          "nodeIndex": "Estado",
+          "nodeLineageTag": "b1a35fc8-64c7-43e2-aa97-78af22e6af87",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1425.5100236606258,
+            "y": 423.17304592018752
+          },
+          "nodeIndex": "FunnelEstancados",
+          "nodeLineageTag": "996d6759-9bb3-49c7-ac64-89e74cea4038",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1709.5100236606258,
+            "y": 435.17304592018752
+          },
+          "nodeIndex": "FunnelMezcla",
+          "nodeLineageTag": "4b82f598-1af4-44c3-b2fe-e892c23d1eac",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1993.5100236606258,
+            "y": 409.17304592018752
+          },
+          "nodeIndex": "FunnelXmR",
+          "nodeLineageTag": "5ba32e5b-eed6-4b44-b85e-0cf39372f19f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 607.39064028909445,
+            "y": 768.346091840375
+          },
+          "nodeIndex": "Puente",
+          "nodeLineageTag": "9f3900eb-518b-498b-9ef9-98e8387aafc8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2277.5100236606258,
+            "y": 459.17304592018752
+          },
+          "nodeIndex": "Reglas",
+          "nodeLineageTag": "02e53ac3-1649-4aee-bfc0-3ca7042e8fab",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 285.28153626976405,
+            "y": 650.34793787394449
+          },
+          "nodeIndex": "SM",
+          "nodeLineageTag": "6e5460c1-da8b-46b2-8f9f-f8c77653bca5",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 484.302701430281,
+            "y": -50
+          },
+          "nodeIndex": "Subidas",
+          "nodeLineageTag": "54ab9695-06fc-4689-b9d0-b0b20bf67909",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1191.5100236606258,
+            "y": 293.7896050886543
+          },
+          "nodeIndex": "XmR",
+          "nodeLineageTag": "9617f164-d79d-4512-8346-8fd3b99b68ef",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}

@@ -1,0 +1,53 @@
+/// Calendario mensual, ene-2022 a oct-2024 (tabla de fechas)
+table Calendario
+	lineageTag: a46b317e-4cdb-4163-9ca5-c743e98e8a75
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isUnique
+		isKey
+		formatString: mmm yyyy
+		lineageTag: 457b5aca-7abf-4095-8302-f95546fd6871
+		summarizeBy: none
+		sourceColumn: Date
+
+	column MesKey
+		dataType: string
+		lineageTag: d848811d-5cd2-42ad-8e55-519f5ea6dcbf
+		summarizeBy: none
+		sourceColumn: MesKey
+
+	column Mes
+		dataType: string
+		lineageTag: 219e5eeb-d30d-4034-984f-6357140f5ee7
+		summarizeBy: none
+		sourceColumn: Mes
+		sortByColumn: Date
+
+	column Año
+		dataType: int64
+		lineageTag: 60c0f7a4-dd16-4f13-a368-ea94eb03e60d
+		summarizeBy: none
+		sourceColumn: Año
+
+	column Trimestre
+		dataType: string
+		lineageTag: 3dfd26d2-ca7f-4752-bc73-094ca93c30c7
+		summarizeBy: none
+		sourceColumn: Trimestre
+
+	partition Calendario = m
+		mode: import
+		source =
+				let
+				    Fechas = List.Transform({0..33}, each Date.AddMonths(#date(2022, 1, 1), _)),
+				    Tabla = Table.FromList(Fechas, Splitter.SplitByNothing(), {"Date"}),
+				    Tipo = Table.TransformColumnTypes(Tabla, {{"Date", type date}}),
+				    MesKey = Table.AddColumn(Tipo, "MesKey", each Date.ToText([Date], "yyyy-MM"), type text),
+				    Mes = Table.AddColumn(MesKey, "Mes", each Date.ToText([Date], "MMM yyyy", "es-CO"), type text),
+				    Anio = Table.AddColumn(Mes, "Año", each Date.Year([Date]), Int64.Type),
+				    Trimestre = Table.AddColumn(Anio, "Trimestre", each Text.From(Date.Year([Date])) & "Q" & Text.From(Date.QuarterOfYear([Date])), type text)
+				in
+				    Trimestre
+
