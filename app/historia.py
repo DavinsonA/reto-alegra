@@ -25,7 +25,7 @@ from finora.two_layer import two_layer_movements
 
 SCREENS = ["1 · Las dos preguntas", "2 · CFO · el negocio subyacente", "3 · CFO · descuentos en dos capas",
            "4 · CFO · revisión mensual", "5 · CRO · clientes ganados", "6 · CRO · revisión semanal",
-           "7 · Qué pido y plan a 90 días"]
+           "7 · Plan a 90 días"]
 STAGE = ["Situación", "Hallazgo", "Implicación y decisión", "Acción", "Hallazgo", "Acción", "Decisión y acción"]
 T, section = C.page("historia", SCREENS, "para CEO, CFO y CRO")
 NAME = {COR: "Modelo corregido", ACT: "Modelo actual (caja)"}

@@ -10,7 +10,7 @@ muestran cada vista tal como está publicada. Ancho 1440 px, tema claro, corte d
 4. [CFO: revisión mensual (resumen)](historia_4_cfo_revision_mensual.png)
 5. [CRO: clientes ganados](historia_5_cro_clientes_ganados.png)
 6. [CRO: revisión semanal (resumen, datos sintéticos)](historia_6_cro_revision_semanal.png)
-7. [Qué pido y plan a 90 días](historia_7_plan_90_dias.png)
+7. [Plan a 90 días](historia_7_plan_90_dias.png)
 
 **Demo y proceso con IA** ([app](https://finora-demo.streamlit.app/)), video 2.
 1. [Proceso: cómo trabajé con IA](demo_1_proceso_con_ia.png)
