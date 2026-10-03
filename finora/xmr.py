@@ -1,11 +1,4 @@
-"""Gráfico de comportamiento del proceso (XmR, Wheeler/Shewhart): separa la variación rutinaria de la señal.
-
-Límites naturales = media ± 2,66 × rango móvil promedio (2,66 = 3 / d2, d2 = 1,128 para n = 2), calculados
-sobre una línea base. Reglas de señal (Wheeler):
-  1. un punto fuera de los límites naturales;
-  2. 8 puntos seguidos del mismo lado de la línea central (cambio de nivel);
-  3. 3 de 4 puntos seguidos más cerca de un mismo límite que de la línea central.
-"""
+"""Gráfico de comportamiento del proceso (XmR, Wheeler/Shewhart): separa la variación rutinaria de la señal."""
 from __future__ import annotations
 
 import numpy as np

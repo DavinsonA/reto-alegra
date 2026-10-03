@@ -1,26 +1,19 @@
--- =====================================================================================
--- 01 · Modelo ACTUAL de Finora: cliente + mes + monto pagado → movimientos de MRR
--- Dialecto: DuckDB (compatible con Postgres salvo read_csv/strptime).
--- Es la lógica que hoy usa Finora: el MRR es la caja del mes.
--- Sirve para (a) reproducir el modelo actual y (b) validar de forma independiente
--- el motor en Python (tests/test_sql.py compara ambos puentes mes a mes).
--- =====================================================================================
+-- Modelo actual de Finora: caja del mes = MRR. DuckDB; tests/test_sql.py lo compara con finora/mrr.py.
 
 CREATE OR REPLACE TABLE stg_transactions AS
 SELECT
     ID                                              AS customer_id,
     date_trunc('month', strptime(month, '%m/%d/%Y'))::DATE AS month,
-    amount * 10000                                  AS cash_cop          -- enunciado: ×10.000 = COP
+    amount * 10000                                  AS cash_cop
 FROM read_csv('data/Transactions.csv', header = true, columns = {'ID': 'INTEGER', 'month': 'VARCHAR', 'amount': 'DOUBLE'});
 
--- Movimiento por cliente-mes según el modelo actual
 CREATE OR REPLACE TABLE fct_mrr_movement_actual AS
 WITH x AS (
     SELECT
         customer_id, month, cash_cop,
         LAG(cash_cop, 1, 0) OVER w                         AS prev_cop,
         ROW_NUMBER() OVER w                                AS rn,
-        -- ¿pagó alguna vez ANTES de este mes?
+
         MAX(CASE WHEN cash_cop > 0 THEN 1 ELSE 0 END) OVER (
             PARTITION BY customer_id ORDER BY month
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS paid_before
@@ -41,7 +34,6 @@ SELECT
     END AS movement
 FROM x;
 
--- Puente mensual + conciliación (mrr_open + Σ movimientos − mrr_close = 0)
 CREATE OR REPLACE TABLE rpt_bridge_actual AS
 WITH m AS (
     SELECT month,

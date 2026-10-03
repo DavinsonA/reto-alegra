@@ -1,16 +1,4 @@
-"""Vistas para OPERAR (no solo para explicar): revisión mensual del MRR (CFO) y semanal del funnel (CRO).
-
-Diseño en docs/diseno_dashboard.md:
-- una decisión, un público y una cadencia por vista;
-- contexto en cada KPI (vs. periodo anterior, vs. hace 12 meses) y estado señal/rutina;
-- XmR para separar la señal del ruido;
-- formato fijo semana a semana (6-12 de la WBR de Amazon);
-- dueño, regla y acción por métrica.
-
-Distribución horizontal, como una página de herramienta BI: encabezado con el filtro a la derecha, franja de KPI,
-fila de análisis (gráfico, tabla y lectura lado a lado) y pequeños múltiplos en rejilla. Lo que se consulta menos
-(reglas y dueños) queda plegado.
-"""
+"""Vistas para OPERAR (no solo para explicar): revisión mensual del MRR (CFO) y semanal del funnel (CRO)."""
 from __future__ import annotations
 
 import pandas as pd
@@ -40,7 +28,7 @@ def _status_chip(sig: dict, bad_when: str) -> tuple[str, str | None]:
         return "Dentro de lo normal", None
     up = sig["direction"] == "arriba"
     bad = (up and bad_when == "up") or (not up and bad_when == "down")
-    if sig["reason"] == "8 puntos seguidos del mismo lado":       # la palabra dice qué regla se activó
+    if sig["reason"] == "8 puntos seguidos del mismo lado":
         text = f"Señal: 8 meses seguidos {'sobre' if up else 'bajo'} la media"
     elif sig["reason"] == "3 de 4 puntos cerca del límite":
         text = f"Señal: 3 de 4 meses cerca del límite {'alto' if up else 'bajo'}"
@@ -61,7 +49,6 @@ def _page_header(title: str, purpose: str, ratio: tuple[int, int] = (3, 1)):
     return right
 
 
-# =====================================================================================
 def monthly_review(T: B.Theme) -> None:
     b = _load("bridge_monthly")
     b = b[b["scenario"] == COR]
@@ -71,14 +58,14 @@ def monthly_review(T: B.Theme) -> None:
     cnt = cnt[cnt["scenario"] == COR].pivot_table(index="month", columns="movement", values="customers").reindex(
         columns=MOVES).fillna(0)
     months = [m for m in piv.index if m >= WINDOW_START]
-    N_GAP = 2                                              # regla de mora del modelo corregido
-    pending_months = months[-N_GAP:]                       # su churn aún no se puede confirmar
+    N_GAP = 2
+    pending_months = months[-N_GAP:]
     stt = _load("status_monthly")
     pend = stt[stt["status"] == "delinquent_open"].set_index("month")
     upl = _load("price_uplift_monthly")
-    up_pend = upl[upl["uplift_conf"] == "pending"].set_index("month")      # subidas del último mes, sin mes siguiente
+    up_pend = upl[upl["uplift_conf"] == "pending"].set_index("month")
     nm = _load("nonmrr_cash_monthly")
-    pp_pend = nm[nm["extra_kind"] == "prepaid_pending"].set_index("month")  # pagos grandes al final: ¿prepago?
+    pp_pend = nm[nm["extra_kind"] == "prepaid_pending"].set_index("month")
 
     filters = _page_header("Revisión mensual del MRR",
                            "Para: CFO y RevOps · Decide: si el cambio del mes es señal o ruido, y quién investiga · "
@@ -89,7 +76,6 @@ def monthly_review(T: B.Theme) -> None:
     i = months.index(m)
     prev, yago = (months[i - 1] if i > 0 else None), (months[i - 12] if i >= 12 else None)
 
-    # series del periodo y su comportamiento (línea base: primeros 18 meses de la ventana)
     w = piv.loc[months]
     series = {
         "net": mrr.loc[months] - mrr.shift(1).loc[months],
@@ -111,7 +97,6 @@ def monthly_review(T: B.Theme) -> None:
             parts.append(f"{B.mm(s.loc[yago]) if abs(s.loc[yago]) > 1000 else B.es(s.loc[yago], 0)} hace 12 meses")
         return " · ".join(parts)
 
-    # ---- franja de KPI ----
     mrr_w = mrr.loc[months]
     chips = {k: _status_chip(sig(k), bad) for k, bad in [("net", "down"), ("new_count", "down")]}
     chips["churn"] = ("", None) if pending else _status_chip(sig("churn"), "up")
@@ -138,20 +123,18 @@ def monthly_review(T: B.Theme) -> None:
              delta=chips["new_count"][0], delta_kind=chips["new_count"][1], foot=new_foot),
     ], compact=True)
 
-    # ---- fila de análisis: puente en dos capas | movimientos | lectura ----
     cust_moves = [("new", "Nuevos"), ("expansion", "Expans."), ("reactivation", "Reactiv."),
                   ("contraction", "Contrac."), ("churn", "Churn")]
     cust = sum(w.loc[m, k] for k, _ in cust_moves)
     price = w.loc[m, "price_uplift"]
-    reading = st.container()                              # la lectura del mes va arriba (se llena más abajo)
+    reading = st.container()
     c1, c2 = st.columns([7, 5], gap="medium")
     with c1:
-        # barras flotantes: el color dice la capa (cliente o pricing), no solo el signo
         x, base, y, color, text = [], [], [], [], []
         cum, ghost = 0.0, None
         for k, lab in cust_moves:
             v = w.loc[m, k] / 1e6
-            if k == "churn" and pending:                    # sin confirmar: se dibuja vacío y no cuenta en el total
+            if k == "churn" and pending:
                 pv = (pend.loc[m, "mrr_cop"] if m in pend.index else 0) / 1e6
                 ghost = (len(x), cum, pv)
                 x.append(lab); base.append(cum); y.append(0.0); color.append(T.viz[2]); text.append("")
@@ -186,7 +169,7 @@ def monthly_review(T: B.Theme) -> None:
                       fig, tbl, SRC_TX, 300, ysuffix=" MM", month_ticks=False)
     with c2:
         prior = months[max(0, i - 12):i]
-        def avg12(k):                                       # promedio de 12 meses; el churn excluye meses sin confirmar
+        def avg12(k):
             ms = [p_ for p_ in prior if not (k == "churn" and p_ in pending_months)] or [m]
             return w.loc[ms, k].mean() / 1e6
         rows = []
@@ -206,7 +189,6 @@ def monthly_review(T: B.Theme) -> None:
                            "descuentos: <b>sin dato</b> (instrumentar). Prom. 12 m: los 12 meses anteriores; el churn "
                            "excluye los meses aún sin confirmar."))
     with reading:
-        # Qué cambió · por qué · qué hacemos (generado a partir de las señales y de lo que está en confirmación)
         actions = {
             "new": "Marketing y Ventas: revisar mezcla de canales y ticket de entrada del mes.",
             "expansion": "CS: identificar qué cuentas expandieron (uso o plan) y si es repetible.",
@@ -245,7 +227,6 @@ def monthly_review(T: B.Theme) -> None:
                          "<b>Qué hacemos:</b> nada que investigar este mes.")
         B.callout("".join(f"<p>{x_}</p>" for x_ in lines), cols=2)
 
-    # ---- ¿señal o ruido? cuatro pequeños múltiplos en una fila ----
     st.markdown('<div class="da-h3" style="margin-top:8px">¿Señal o ruido?</div><div class="da-sub">Banda = rango '
                 'normal · rombo = señal · círculo = churn en confirmación · contracción y churn en positivo. Solo se '
                 f'investiga lo que sale de la banda o forma una racha.</div><div class="da-source" '
@@ -300,8 +281,7 @@ def monthly_review(T: B.Theme) -> None:
                      ]), SRC_TX)
 
 
-# =====================================================================================
-METRICS = [  # clave, nombre, tipo, sufijo, escala, malo cuando
+METRICS = [
     ("leads", "Leads nuevos", "Volumen", "", 1, None),
     ("high_fit", "Mezcla de alto ajuste (pequeña y mediana)", "Entrada controlable", " %", 100, "down"),
     ("speed_p50", "Speed-to-lead P50", "Entrada controlable", " h", 1, "up"),
@@ -310,7 +290,7 @@ METRICS = [  # clave, nombre, tipo, sufijo, escala, malo cuando
     ("sql_to_won", "SQL a Won en 60 días", "Entrada controlable", " %", 100, "down"),
     ("new_customers", "Clientes nuevos", "Salida", "", 1, "down"),
 ]
-SHORT = {"high_fit": "Mezcla de alto ajuste", "sla_1h": "Contactados en < 1 hora",   # títulos de la rejilla 6-12
+SHORT = {"high_fit": "Mezcla de alto ajuste", "sla_1h": "Contactados en < 1 hora",
          "work_to_eng": "Working a Engaged", "sql_to_won": "SQL a Won"}
 
 
@@ -318,7 +298,7 @@ def _fmt(v, suffix, scale):
     if pd.isna(v):
         return "en maduración"
     d = 1 if suffix in (" %", " h") else 0
-    return f"{B.es(v * scale, d)}{suffix.replace(' ', chr(160))}"     # espacio duro: la unidad no se separa
+    return f"{B.es(v * scale, d)}{suffix.replace(' ', chr(160))}"
 
 
 def weekly_review(T: B.Theme, channel_colors: dict) -> None:
@@ -335,7 +315,6 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
     mo = F.period_metrics(r, as_of, "M")
     week = wk.index[-1]
 
-    # estado de cada métrica en su última semana con dato
     state = {}
     for k, name, kind, suf, sc, bad in METRICS:
         s = wk[k].dropna()
@@ -354,7 +333,6 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
     name = {k: n for k, n, *_ in METRICS}
     meta = {k: (suf, sc) for k, _, _, suf, sc, _ in METRICS}
 
-    # ---- fila 1: lectura | árbol de métricas ----
     c1, c2 = st.columns([5, 7], gap="medium")
     with c1:
         parts = [f"<p><b>Semana del {week.day} de {B.MESES[week.month - 1]} de {week.year} · qué cambió</b></p>"]
@@ -397,7 +375,7 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
               new_customers -> out; tk -> out; leads -> new_customers; conv -> new_customers;
               speed_p50 -> conv; sla_1h -> conv; high_fit -> conv; work_to_eng -> conv; sql_to_won -> conv;
             }}""")
-            pre = ["high_fit", "speed_p50", "sla_1h", "work_to_eng"]           # entradas controlables antes de SQL
+            pre = ["high_fit", "speed_p50", "sla_1h", "work_to_eng"]
             hot = [k for k in pre if state[k]["signal"]]
             if hot and not state["sql_to_won"]["signal"]:
                 reading = (f"<b>Lectura:</b> {len(hot)} entradas en señal, todas antes de SQL; post-SQL normal. "
@@ -409,15 +387,13 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
             st.markdown(f'<div class="hs-body" style="font:400 14px/22px var(--font-sans);margin:6px 0 2px">{reading}</div>'
                         f'<div class="da-source">{SRC_SYN}</div>', unsafe_allow_html=True)
 
-    # ---- fila 2: formato 6-12 en rejilla de 4 columnas (mismas métricas, mismo orden, cada semana) ----
     st.markdown('<div class="da-h3" style="margin-top:8px">Formato 6-12: últimas 6 semanas | últimos 12 meses</div>'
                 '<div class="da-sub">Formato fijo de la Weekly Business Review de Amazon: siempre las mismas métricas, en '
                 'el mismo orden. Izquierda, 6 semanas; derecha, 12 meses. Banda = rango normal (XmR); rombo = señal. Las '
                 'tasas esperan su ventana de maduración (30 o 60 días).</div>'
                 f'<div class="da-source" style="margin-bottom:8px">{SRC_SYN}</div>',
                 unsafe_allow_html=True)
-    slots = list(METRICS) + [None]                         # 7 métricas + «¿mezcla o tasa?» = 2 filas de 4
-    # ¿mezcla o tasa? New → Engaged (30 días), camino SDR: últimas 6 semanas maduras vs. las 12 anteriores
+    slots = list(METRICS) + [None]
     rw = r[r["path"] == "sdr_full"].assign(cohort=lambda d: d["created_at"].dt.to_period("W"))
     mature = sorted(c for c in rw["cohort"].unique() if c.end_time + pd.Timedelta(days=30) <= as_of)
     kt = F.kitagawa(rw, "New", "Engaged", 30, mature[-18:-6], mature[-6:])
@@ -459,14 +435,14 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
                                       marker=dict(color=T.negative, size=9, symbol="diamond",
                                                   line=dict(color=T.surface, width=1.5)),
                                       hovertemplate="Señal · %{x|%d %b %Y}: %{y:.1f}<extra></extra>", row=1, col=col_)
-                ends6 = [last6.index[-1]]                          # una sola marca: la rejilla es estrecha
+                ends6 = [last6.index[-1]]
                 ends12 = [last12.index[j] for j in (len(last12) // 2, len(last12) - 1)]
                 f.update_xaxes(tickvals=ends6, ticktext=[f"{d.day} {B.MESES[d.month - 1]}" for d in ends6], row=1, col=1,
                                tickangle=0)
                 f.update_xaxes(tickvals=ends12, ticktext=[B.MESES[d.month - 1] for d in ends12], row=1, col=2,
                                tickangle=0)
                 f.update_annotations(font=dict(family=B.FONT_SANS, size=11, color=T.muted))
-                if suf not in (" %", " h"):                  # escalas distintas (semana vs. mes): eje propio a la derecha
+                if suf not in (" %", " h"):
                     f.update_yaxes(side="right", row=1, col=2)
                 st_ = state[k]
                 status = "Normal" if not st_["signal"] else f"Señal {'▲' if st_['direction'] == 'arriba' else '▼'}"
@@ -477,7 +453,6 @@ def weekly_review(T: B.Theme, channel_colors: dict) -> None:
                                   periodo=lambda d: d["periodo"].dt.date),
                               None, 190, ysuffix=suf, month_ticks=False)
 
-    # ---- fila 3: lista operativa | dueños y reglas ----
     stl = F.stalled(r, ev, as_of)
     by_owner = stl.pivot_table(index="owner", columns="stage", values="lead_id", aggfunc="count", fill_value=0)
     by_owner["Total"] = by_owner.sum(axis=1)

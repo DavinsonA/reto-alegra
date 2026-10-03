@@ -1,11 +1,4 @@
--- =====================================================================================
--- 03 · Clasificación de movimientos en DOS CAPAS sobre fct_mrr_customer_month
---   Capa cliente  (list_mrr):     new | expansion | contraction | churn | reactivation
---   Capa pricing  (discount_mrr): discount_start | discount_change | discount_end
---                                 | discount_release_on_churn  (en la vista ejecutiva se suma al churn)
---   Repricing de catálogo: requiere marcar el cambio de lista (change_reason = 'repricing').
--- Identidad: Δnet = Δlist − Δdiscount  (se verifica al final).
--- =====================================================================================
+-- Movimientos en dos capas sobre fct_mrr_customer_month: capa cliente (lista) y capa pricing (descuento).
 
 CREATE OR REPLACE VIEW v_two_layer_movements AS
 WITH x AS (
@@ -46,7 +39,6 @@ SELECT * FROM customer_layer
 UNION ALL
 SELECT * FROM pricing_layer;
 
--- Respuesta del CFO: "¿cuánto del cambio es cliente y cuánto pricing/descuentos?" por mes
 CREATE OR REPLACE VIEW v_bridge_two_layer AS
 SELECT
     month,
@@ -59,12 +51,11 @@ FROM v_two_layer_movements
 GROUP BY month
 ORDER BY month;
 
--- Métricas de captura de precio (lo que "dejamos de capturar por decisiones comerciales")
 CREATE OR REPLACE VIEW v_price_capture AS
 SELECT
     month,
     SUM(list_mrr_cop)                          AS list_mrr_cop,
-    SUM(discount_mrr_cop)                      AS discount_leakage_cop,     -- revenue no capturado del mes
+    SUM(discount_mrr_cop)                      AS discount_leakage_cop,
     SUM(net_mrr_cop)                           AS net_mrr_cop,
     SUM(net_mrr_cop) / NULLIF(SUM(list_mrr_cop), 0) AS price_realization
 FROM fct_mrr_customer_month

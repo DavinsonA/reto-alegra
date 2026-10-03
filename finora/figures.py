@@ -1,9 +1,4 @@
-"""Cifras clave: la ÚNICA fuente de los números que citan README, HALLAZGOS y NOTA_CORTA.
-
-`key_figures()` calcula cada cifra desde el modelo y las tablas agregadas; `render_docs()` llena las plantillas de
-docs/plantillas/ (marcadores {{nombre}}) y escribe los documentos. Una prueba verifica que los documentos del
-repositorio coinciden con lo que se genera: nadie edita un número a mano.
-"""
+"""Cifras clave: la ÚNICA fuente de los números que citan README, HALLAZGOS y NOTA_CORTA."""
 from __future__ import annotations
 
 import re
@@ -19,7 +14,6 @@ TEMPLATES = ROOT / "docs" / "plantillas"
 DOCS = {"README.md": "README.md", "HALLAZGOS.md": "HALLAZGOS.md", "NOTA_CORTA.md": "NOTA_CORTA.md"}
 
 
-# ---------- formato en español ----------
 def es(x: float, d: int = 1) -> str:
     s = f"{x:,.{d}f}"
     return s.replace(",", "X").replace(".", ",").replace("X", ".").replace("-", "−")
@@ -33,7 +27,6 @@ def pct(x: float, d: int = 0) -> str:
     return es(x * 100, d)
 
 
-# ---------- cálculo ----------
 def _internal_gaps(cm: pd.DataFrame) -> tuple[int, int]:
     """Huecos internos (meses en 0 entre dos pagos) y clientes con al menos uno."""
     n, cust = 0, 0
@@ -55,7 +48,7 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
 
     f: dict[str, str] = {}
     br_c, br_a = bridge(cm, "corrected"), bridge(cm, "actual")
-    w = lambda br: br.loc[br.index >= WINDOW_START]                       # noqa: E731
+    w = lambda br: br.loc[br.index >= WINDOW_START]
     tc, ta = w(br_c).sum(), w(br_a).sum()
     m0, m1 = br_c.loc[pd.Period("2022-03", "M"), "mrr_close"], br_c["mrr_close"].iloc[-1]
     f.update(mrr_ini=mm(m0), mrr_fin=mm(m1), cambio_neto=mm(m1 - m0, sign=True), crec_mrr=pct(m1 / m0 - 1),
@@ -72,7 +65,6 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
     f.update(precio_pend=mm(pend["delta"].sum()), precio_pend_n=es(len(pend), 0),
              precio_pend_pct=pct((pend["delta"] / (pend["mrr_cop"] - pend["delta"])).median(), 1))
 
-    # caja que no es MRR (ventana)
     wc = cm[cm["month"] >= WINDOW_START]
     for kind in ("arrears", "lump", "spike", "prepaid", "retro", "prepaid_pending"):
         sel = wc[wc["extra_kind"] == kind]
@@ -81,7 +73,6 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
     f["caja_prepaid_clientes"] = es(wc.loc[wc["extra_kind"] == "prepaid", "customer_id"].nunique(), 0)
     f["caja_no_mrr"] = mm(wc["extra_cop"].sum())
 
-    # sensibilidad: una regla a la vez
     s = tables["rule_sensitivity"]
     cor = s[s["escenario"] != "Modelo actual (caja)"]
     act = s[s["escenario"] == "Modelo actual (caja)"].iloc[0]
@@ -96,7 +87,6 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
     sc = s[s["escenario"] == "Sin puestas al día"].iloc[0]
     f.update(sin_catchup_contr=mm(sc["contraction_cop"]), sin_catchup_exp=mm(sc["expansion_cop"], sign=True))
 
-    # retención a 12 meses por cohorte anual (ponderada por MRR inicial)
     rc = tables["retention_cohorts"]
     for model, tag in (("Corregido (N=2)", "cor"), ("Modelo actual (caja)", "act")):
         for y in ("2022", "2023"):
@@ -105,14 +95,12 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
             f[f"grr_{tag}_{y}"] = pct(r["gross_sum"].sum() / r["start_sum"].sum())
             f[f"logo_{tag}_{y}"] = pct(r["active"].sum() / r["n"].sum())
 
-    # descuentos: bajadas exactas a la mitad
     hc = tables["half_cut_monthly"]
     hc = hc[hc["month"] >= str(WINDOW_START)]
     half = wc[wc["half_cut"]]
     f.update(half_n=es(int(hc["events"].sum()), 0), half_clientes=es(half["customer_id"].nunique(), 0),
              half_contr=mm(half["delta"].sum()), half_techo=mm(hc["foregone_cop"].sum()))
 
-    # mora y cobranza
     gap = wc[wc["status"] == "gap"]
     last = cm[cm["month"] == cm["month"].max()]
     open_ = last.loc[last["status"] == "delinquent_open", "mrr_cop"].sum()
@@ -120,7 +108,6 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
              mora_pagada=mm(gap.loc[gap["gap_paid"], "mrr_cop"].sum()), mora_abierta=mm(open_),
              mora_abierta_pct=pct(open_ / m1, 1), mora_abierta_clientes=es(int((last["status"] == "delinquent_open").sum()), 0))
 
-    # lado Won del funnel
     nc = tables["new_customers_monthly"]
     nc = nc[nc["month"] >= str(WINDOW_START)].assign(year=lambda d: d["month"].str[:4])
     g = nc.groupby("year").agg(n=("new_customers", "sum"), mrr=("new_mrr_cop", "sum"), m3=("mrr_m3_sum_cop", "sum"),
@@ -150,7 +137,6 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
              retail_t0=es(r0["Retail"] / 1e3, 1), retail_t1=es(r1["Retail"] / 1e3, 1),
              retail_caida=pct(1 - r1["Retail"] / r0["Retail"]), retail_s0=pct(w0["Retail"], 1), retail_s1=pct(w1["Retail"], 1))
 
-    # S&M y eficiencia (unidades del enunciado)
     sm_m = sm.set_index("month")["sm_total_cop"]
     f.update(sm_mes=es(sm_m.loc[sm_m.index >= pd.Period("2024-01", "M")].mean() / MM, 0),
              sm_vs_mrr=es(sm_m.loc[sm_m.index >= pd.Period("2024-01", "M")].mean() / m1, 1))
@@ -163,7 +149,6 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
     j = j[j.index >= WINDOW_START]
     f.update(corr_niveles=es(j["sm"].corr(j["n"]), 2), corr_dif=es(j["sm"].diff().corr(j["n"].diff()), 2))
 
-    # calidad de datos
     gaps, gap_cust = _internal_gaps(cm)
     n_cust = cm["customer_id"].nunique()
     f.update(clientes=es(n_cust, 0), meses=es(cm["month"].nunique(), 0), huecos=es(gaps, 0), huecos_clientes=es(gap_cust, 0),
@@ -172,7 +157,6 @@ def key_figures(cm: pd.DataFrame, tables: dict[str, pd.DataFrame], sm: pd.DataFr
     return f
 
 
-# ---------- documentos ----------
 TOKEN = re.compile(r"\{\{(\w+)\}\}")
 
 

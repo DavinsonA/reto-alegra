@@ -1,14 +1,4 @@
-"""Dos modelos de MRR sobre el histórico cliente + mes + monto pagado.
-
-- Modelo **actual** (el de Finora hoy): el MRR es la caja del mes. Un mes en 0 es churn, volver a pagar es
-  reactivación y cualquier alza es expansión.
-- Modelo **corregido**: infiere el MRR recurrente separando lo que es **calendario de pagos** (mora, pagos de
-  puesta al día), **cargos únicos** (retroactivos de una subida de precio, picos) y **decisiones de pricing**
-  (subidas de precio) del **comportamiento del cliente** (new, expansión/contracción por uso o plan, churn,
-  reactivación).
-
-Las reglas son explícitas y parametrizables (`Rules`) para poder mostrar la sensibilidad de cada decisión.
-"""
+"""Dos modelos de MRR sobre el histórico cliente + mes + monto pagado."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -51,18 +41,18 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
     """Infiere el MRR recurrente de un cliente a partir de su serie de caja mensual."""
     T = len(cash)
     level = np.zeros(T)
-    extra = np.zeros(T)                       # caja que NO es MRR del mes (mora cobrada, retroactivo, pico)
+    extra = np.zeros(T)
     extra_kind = np.array([""] * T, dtype=object)
-    uplift = np.array([""] * T, dtype=object)  # '', 'high' (retroactivo), 'medium' (alza persistente), 'pending' (último mes)
-    covered = np.zeros(T, dtype=bool)          # el pago de este mes cubre el hueco anterior (mora pagada)
+    uplift = np.array([""] * T, dtype=object)
+    covered = np.zeros(T, dtype=bool)
     pos = cash > 0
     usage_like = len(np.unique(np.round(cash[pos], 3))) >= rules.usage_distinct_amounts
 
-    # --- 1. Nivel recurrente de los meses con pago -------------------------------------------------
+    # 1. nivel recurrente de los meses con pago
     last_level = 0.0
     zeros_before = 0
     seen_payment = False
-    prepaid = np.zeros(T, dtype=bool)          # meses en 0 cubiertos por un prepago
+    prepaid = np.zeros(T, dtype=bool)
     t = 0
     while t < T:
         c = cash[t]
@@ -74,7 +64,7 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
         nxt = cash[t + 1] if t + 1 < T else 0.0
         lvl, kind = c, ""
 
-        # 0) prepago multi-mes (p. ej., plan anual): pago grande seguido de muchos meses en 0
+        # 0) prepago multi-mes: pago grande seguido de muchos meses en 0
         z = 0
         while t + 1 + z < T and cash[t + 1 + z] <= 0:
             z += 1
@@ -89,9 +79,7 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
             t += 1
             continue
 
-        # 0b) el mismo pago grande cerca del final de la serie: los meses en 0 que confirmarían el prepago
-        #     todavía no existen (censura a la derecha). Se reconoce el nivel anterior (o c/12 si es nuevo) y el
-        #     resto queda como caja en confirmación, igual que el churn de los últimos meses.
+        # 0b) prepago al final de la serie: aún no hay meses en 0 que lo confirmen; queda en confirmación
         if (t + 1 + z == T and z < rules.prepay_min_zeros and c >= rules.prepay_min_amount
                 and (last_level == 0 or c >= 3 * last_level)):
             lvl = last_level if last_level > 0 else c / 12
@@ -102,15 +90,14 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
             t += 1
             continue
 
-        # a) pago de puesta al día o pago agrupado: c ≈ k × nivel, y el monto alto NO se mantiene.
-        #    Si el monto alto se mantiene el mes siguiente, es una expansión real, no un pago agrupado.
+        # a) puesta al día o pago agrupado: c ≈ k × nivel y el monto alto no se mantiene
         high_persists = nxt > 0 and abs(nxt / c - 1) <= rules.rel_tol
         jumped = zeros_before > 0 or not seen_payment or (last_level > 0 and c >= 1.8 * last_level)
         candidates = []
         if nxt > 0 and jumped:
-            candidates.append(nxt)                  # vuelve al nivel normal el mes siguiente
+            candidates.append(nxt)
         if last_level > 0 and not high_persists and (zeros_before > 0 or abs(nxt / last_level - 1) <= rules.rel_tol):
-            candidates.append(last_level)           # pago al nivel anterior (puesta al día o pago doble aislado)
+            candidates.append(last_level)
         for ref in (candidates if rules.detect_catchup else []):
             k = _is_multiple(c, ref, rules.rel_tol)
             if k:
@@ -129,7 +116,7 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
                     lvl, kind = nxt, "retro"
                     uplift[t] = "high"
 
-        # c) pico puntual (no recurrente) en clientes de suscripción estable
+        # c) pico puntual en clientes de suscripción estable
         if not kind and not usage_like and not (nxt > 0 and abs(nxt / c - 1) <= 0.25):
             window = cash[max(0, t - 6): t + 7]
             window = np.delete(window, min(t, 6))
@@ -148,11 +135,11 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
         zeros_before = 0
         t += 1
 
-    # --- 2. Estado de los meses en 0: antes del primer pago, mora tolerada o churn ----------------
+    # 2. meses en 0: antes del primer pago, mora tolerada o churn
     status = np.where(pos, "active", "").astype(object)
     status[prepaid] = "prepaid"
     gap_paid = np.zeros(T, dtype=bool)
-    covered_month = pos | prepaid               # meses con servicio pagado (directo o por prepago)
+    covered_month = pos | prepaid
     t = 0
     while t < T:
         if covered_month[t]:
@@ -161,18 +148,18 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
         s = t
         while t < T and not covered_month[t]:
             t += 1
-        e = t - 1                                   # corrida de ceros [s, e]
+        e = t - 1
         g = e - s + 1
         before = level[s - 1] if s > 0 and pos[: s].any() else 0.0
         if not pos[: s].any():
-            status[s: e + 1] = "pre"                # todavía no es cliente
-        elif e == T - 1:                            # ceros al final de la serie (censura a la derecha)
+            status[s: e + 1] = "pre"
+        elif e == T - 1:
             if g <= rules.gap_tolerance and rules.trailing_policy == "carry":
                 status[s: e + 1] = "delinquent_open"
                 level[s: e + 1] = before
             else:
                 status[s: e + 1] = "churned"
-        else:                                       # hueco interno: vuelve a pagar en e + 1
+        else:
             if covered[e + 1] or g <= rules.gap_tolerance:
                 status[s: e + 1] = "gap"
                 level[s: e + 1] = before
@@ -180,7 +167,7 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
             else:
                 status[s: e + 1] = "churned"
 
-    # --- 3. Subidas de precio de confianza media: alza persistente de +2% a +10% -----------------
+    # 3. subidas de precio de confianza media: alza persistente de +2 % a +10 %
     if rules.detect_pricing and not usage_like:
         for t in range(1, T):
             if uplift[t] or level[t - 1] <= 0 or level[t] <= 0:
@@ -189,7 +176,7 @@ def infer_customer(cash: np.ndarray, rules: Rules = Rules()) -> dict[str, np.nda
             if not rules.uplift_min <= r < rules.uplift_max:
                 continue
             if t == T - 1:
-                uplift[t] = "pending"                # sin mes siguiente: en confirmación, como el churn final
+                uplift[t] = "pending"
             elif abs(level[t + 1] / level[t] - 1) < 0.005:
                 uplift[t] = "medium"
 
@@ -241,7 +228,6 @@ def build_customer_month(tx: pd.DataFrame, rules: Rules = Rules()) -> pd.DataFra
     first_pay = cm[cm["cash_cop"] > 0].groupby("customer_id")["month"].min().rename("first_paid_month")
     cm = cm.merge(first_pay, on="customer_id", how="left")
     start = cm["month"].min()
-    # Censura a la izquierda: quien paga por primera vez en los primeros N meses pudo ser un cliente en mora
     cm["left_censored"] = (cm["first_paid_month"] - start).apply(lambda d: d.n) <= rules.gap_tolerance
     return cm
 

@@ -1,11 +1,4 @@
-"""Marca personal de Davinson Arteaga aplicada a las apps, en un solo tema claro (Día).
-
-- Superficies y tinta del tema de VS Code "Davinson Día" (fondo #FAFBFC, barra #F1F3F6, bordes #E3E7EC,
-  tinta #11151A, primario #005C56, enlaces #236997) + paleta `viz` Día de la skill `davinson-brand`.
-- Paleta de gráficos validada con `validate_palette.js` sobre #ffffff: todas las combinaciones usadas pasan
-  (CVD ΔE ≥ 8,7; visión normal ≥ 17,7; contraste ≥ 3:1).
-- El tema se fija en .streamlit/config.toml: la app no cambia a oscuro aunque el sistema lo esté.
-"""
+"""Marca personal de Davinson Arteaga aplicada a las apps, en un solo tema claro (Día)."""
 from __future__ import annotations
 
 import html
@@ -28,23 +21,23 @@ class Theme:
     surface: str
     raised: str
     sidebar: str
-    line: str             # grilla y bordes decorativos
-    line_strong: str      # ejes y bordes de controles (≥ 3:1)
+    line: str
+    line_strong: str
     grid_dot: str
     ink: str
     muted: str
-    accent: str           # enlaces, delta positivo
+    accent: str
     accent_soft: str
     negative: str
     negative_soft: str
     warning: str
     warning_soft: str
     logo: str
-    role: str             # color de la línea de rol
-    band: str             # relleno de bandas de referencia
-    viz: tuple            # categóricas, orden fijo
-    seq: tuple            # magnitud: del valor bajo (se funde con la superficie) al alto
-    div: tuple            # divergente: durazno ← neutro → cielo (marca)
+    role: str
+    band: str
+    viz: tuple
+    seq: tuple
+    div: tuple
 
 
 DIA = Theme(
@@ -189,7 +182,6 @@ def identity() -> None:
         unsafe_allow_html=True)
 
 
-# ---------- texto y números (español) ----------
 def es(x: float, d: int = 1) -> str:
     s = f"{x:,.{d}f}"
     return s.replace(",", "X").replace(".", ",").replace("X", ".").replace("-", "−")
@@ -215,10 +207,8 @@ def es_table(df: pd.DataFrame, decimals: int = 1):
     return df.style.format(fmt)
 
 
-# ---------- componentes ----------
 def kpi_row(items: list[dict], compact: bool = False) -> None:
-    """items: dict(overline, value, foot, delta=None, delta_kind=None|'up'|'down', pastel=False). Máx. 4.
-    compact: versión densa para el tablero (menos relleno, cifra más baja)."""
+    """items: dict(overline, value, foot, delta=None, delta_kind=None|'up'|'down', pastel=False)."""
     cards = []
     for it in items[:4]:
         cls = "da-card da-kpi" + (" da-card-pastel" if it.get("pastel") else "")
@@ -235,8 +225,7 @@ def kpi_row(items: list[dict], compact: bool = False) -> None:
 
 
 def callout(text_md: str, kind: str = "info", cols: int = 1) -> None:
-    """Aviso. Info: superficie neutra, la frase en negrita hace de etiqueta. Warn: estado = color + palabra.
-    `cols` > 1 reparte los párrafos en columnas (franja ancha y baja, como en una herramienta BI)."""
+    """Aviso."""
     label = '<div class="da-overline">Atención</div>' if kind == "warn" else ""
     body = text_md if text_md.lstrip().startswith(("<ul", "<p")) else f"<p>{text_md}</p>"
     style = f' style="column-count:{cols};column-gap:40px"' if cols > 1 else ""
@@ -265,7 +254,7 @@ def _month_ticks(fig: go.Figure, yearly: bool = False) -> None:
     except Exception:
         return
     months = pd.period_range(d.min(), d.max(), freq="M")
-    if yearly:                                   # gráficos estrechos: una marca por año, sin girar
+    if yearly:
         vals = [m for m in months if m.month == 1]
         fig.update_xaxes(tickvals=[m.start_time for m in vals], ticktext=[str(m.year) for m in vals], tickangle=0)
         return
@@ -295,7 +284,7 @@ def style(fig: go.Figure, height: int = 360, ysuffix: str | None = None, right: 
         _month_ticks(fig, yearly=month_ticks == "year")
     ys = [v for tr in fig.data if tr.type == "bar" and tr.orientation != "h" and tr.y is not None
           for v in tr.y if isinstance(v, (int, float)) and v == v]
-    if ys and min(ys) >= 0:                       # solo positivos: la línea del eje X ya es la base
+    if ys and min(ys) >= 0:
         fig.update_yaxes(zeroline=False)
     fig.update_traces(selector=dict(type="bar"), marker_line=dict(color=t.surface, width=2))
     fig.update_traces(selector=dict(type="scatter"), line=dict(width=2))
@@ -336,8 +325,7 @@ def chart_frame(key: str, overline: str, title: str, subtitle: str, fig: go.Figu
 
 def text_frame(key: str, overline: str, title: str, subtitle: str, df: pd.DataFrame, source: str | None = None,
                right: tuple[str, ...] = (), note: str | None = None) -> None:
-    """Tabla de frases (reglas, pasos, hipótesis) o de cifras con texto (p. ej., «en confirmación»): HTML que envuelve
-    el texto. `right` = columnas numéricas alineadas a la derecha; `note` = pie de tabla."""
+    """Tabla de frases (reglas, pasos, hipótesis) o de cifras con texto (p."""
     cols = list(df.columns)
     al = [' style="text-align:right"' if c in right else "" for c in cols]
     head = "".join(f"<th{a}>{html.escape(str(c))}</th>" for c, a in zip(cols, al))

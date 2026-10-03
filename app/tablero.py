@@ -1,9 +1,4 @@
-"""Finora · tablero operativo: las dos revisiones recurrentes, para seguir usándolas después del reto.
-
-- Revisión mensual del MRR (CFO, en el cierre): datos reales agregados.
-- Revisión semanal del funnel (CRO, 30 minutos): prototipo con datos sintéticos hasta tener eventos del CRM.
-Ejecutar:  streamlit run app/tablero.py
-"""
+"""Finora · tablero operativo: las dos revisiones recurrentes, para seguir usándolas después del reto."""
 from __future__ import annotations
 
 import sys
@@ -12,13 +7,13 @@ from pathlib import Path
 APP = Path(__file__).resolve().parent
 sys.path[:0] = [str(APP.parent), str(APP)]
 
-import fresh  # noqa: E402
+import fresh
 
-fresh.reload_project_modules()          # no mezclar versiones viejas y nuevas tras un redespliegue
+fresh.reload_project_modules()
 
-import common as C  # noqa: E402
-import operar as O  # noqa: E402
-from finora.funnel_synth import CHANNELS  # noqa: E402
+import common as C
+import operar as O
+from finora.funnel_synth import CHANNELS
 
 S_MON = "Mensual del MRR · CFO"
 S_WEEK = "Semanal del funnel · CRO"

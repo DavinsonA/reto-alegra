@@ -1,5 +1,6 @@
 .venv/
 __pycache__/
+.ipynb_checkpoints/
 .pytest_cache/
 # datos originales del reto y tablas por cliente: NO se publican
 /data/

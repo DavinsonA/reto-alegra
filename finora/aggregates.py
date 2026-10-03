@@ -1,7 +1,4 @@
-"""Tablas **agregadas** para la demo pública (sin detalle por cliente).
-
-Todo lo que sale de aquí se agrega por mes, industria, cohorte o escenario. Ninguna tabla tiene customer_id.
-"""
+"""Tablas **agregadas** para la demo pública (sin detalle por cliente)."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -23,7 +20,6 @@ SCENARIOS = {
 
 
 INF = float("inf")
-# Sensibilidad: una regla a la vez, apagada o llevada a su extremo (escenario, regla, ajuste, reglas)
 RULE_SCENARIOS = [
     ("Base: corregido (N = 2)", "—", "reglas por defecto", Rules()),
     ("Mora tolerada N = 1", "Tolerancia de mora", "gap_tolerance = 1", Rules(gap_tolerance=1)),
@@ -79,7 +75,6 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
     out_dir.mkdir(parents=True, exist_ok=True)
     tables: dict[str, pd.DataFrame] = {}
 
-    # --- puentes por escenario (incluye el modelo actual)
     base = build_customer_month(tx, Rules()).merge(ind, on="customer_id", how="left")
     parts = [_long_bridge(bridge(base, "actual"), "Modelo actual (caja)"),
              _long_bridge(bridge(base, "corrected"), "Corregido (N=2)")]
@@ -92,7 +87,6 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
     cm = base
     cm["age"] = (cm["month"] - cm["first_paid_month"]).apply(lambda d: d.n)
 
-    # --- clientes por movimiento y mes (ambos modelos) y clientes activos: monto + clientes, como ChartMogul
     cnt = []
     for col, label in (("mv", "Corregido (N=2)"), ("mv_actual", "Modelo actual (caja)")):
         c_ = cm[cm[col].isin(ALL_MOVES)].groupby(["month", col])["customer_id"].nunique().reset_index()
@@ -102,27 +96,22 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
         active_customers=("mrr_cop", lambda s: int((s > 0).sum())),
         paying_customers=("cash_cop", lambda s: int((s > 0).sum()))).reset_index()
 
-    # --- caja que no es MRR, por tipo y mes
     nonmrr = cm[cm["extra_kind"] != ""].groupby(["month", "extra_kind"]).agg(
         events=("extra_cop", "size"), amount_cop=("extra_cop", "sum")).reset_index()
     tables["nonmrr_cash_monthly"] = nonmrr
 
-    # --- estado de la base por mes (clientes y MRR)
     st = cm[cm["status"] != "pre"].groupby(["month", "status"]).agg(
         customers=("customer_id", "nunique"), mrr_cop=("mrr_cop", "sum")).reset_index()
     tables["status_monthly"] = st
 
-    # --- MRR por industria y mes (ambos modelos)
     tables["mrr_by_industry_monthly"] = cm.groupby(["month", "industry"]).agg(
         mrr_cop=("mrr_cop", "sum"), mrr_actual_cop=("mrr_actual_cop", "sum"),
         paying_customers=("cash_cop", lambda s: int((s > 0).sum()))).reset_index()
 
-    # --- subidas de precio por mes y confianza
     up = cm[cm["mv"] == "price_uplift"]
     tables["price_uplift_monthly"] = up.groupby(["month", "uplift_conf"]).agg(
         events=("delta", "size"), amount_cop=("delta", "sum")).reset_index()
 
-    # --- bajadas exactas a la mitad: eventos y cota superior de fuga acumulada por mes
     leak_rows = []
     for _, g in cm[cm["customer_id"].isin(cm.loc[cm["half_cut"], "customer_id"])].groupby("customer_id"):
         lv, hc, months = g["mrr_cop"].to_numpy(), g["half_cut"].to_numpy(), g["month"].to_numpy()
@@ -135,7 +124,6 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
     tables["half_cut_monthly"] = leak.groupby("month").agg(
         events=("is_event", "sum"), foregone_cop=("foregone_cop", "sum")).reset_index()
 
-    # --- clientes nuevos por mes e industria (modelo corregido) + MRR al 3er mes
     new = cm[cm["mv"] == "new"][["customer_id", "month", "industry", "delta"]]
     m3 = cm[cm["age"] == 2][["customer_id", "mrr_cop"]].rename(columns={"mrr_cop": "mrr_m3_cop"})
     new = new.merge(m3, on="customer_id", how="left")
@@ -143,7 +131,6 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
         new_customers=("customer_id", "nunique"), new_mrr_cop=("delta", "sum"),
         mrr_m3_sum_cop=("mrr_m3_cop", "sum"), with_m3=("mrr_m3_cop", "count")).reset_index()
 
-    # --- retención por cohorte trimestral y edad (ambos modelos)
     first_q = cm.loc[cm["mv"] == "new"].assign(cohort=lambda d: d["month"].dt.asfreq("Q"))[["customer_id", "cohort"]]
     c = cm.merge(first_q, on="customer_id")
     rows = []
@@ -161,9 +148,8 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
     ret["nrr"] = ret["mrr_sum"] / ret["start_sum"]
     ret["grr"] = ret["gross_sum"] / ret["start_sum"]
     ret["logo_retention"] = ret["active"] / ret["n"]
-    tables["retention_cohorts"] = ret      # sumas agregadas por cohorte: permiten reagregar NRR/GRR ponderado por MRR
+    tables["retention_cohorts"] = ret
 
-    # --- S&M mensual (ya es agregado de la empresa) y CAC trimestral
     tables["sm_monthly"] = sm.copy()
     q = sm.assign(q=sm["month"].dt.asfreq("Q")).groupby("q")["sm_total_cop"].sum()
     nq = cm[cm["mv"] == "new"].assign(q=lambda d: d["month"].dt.asfreq("Q")).groupby("q").agg(
@@ -173,10 +159,8 @@ def export_app_data(tx: pd.DataFrame, ind: pd.DataFrame, sm: pd.DataFrame, out_d
     cac["payback_months_no_margin"] = cac["cac_cop"] / (cac["new_mrr_cop"] / cac["new_customers"])
     tables["cac_quarterly"] = cac
 
-    # --- sensibilidad: una regla a la vez
     tables["rule_sensitivity"] = rule_sensitivity(tx)
 
-    # --- calidad de datos (tabla de tratamiento)
     w = cm[cm["month"] >= WINDOW_START]
     dq = [
         ("Malla cliente × mes completa (0 = no pagó)", f"{cm['customer_id'].nunique()} clientes × {cm['month'].nunique()} meses", "Se usa como malla de fechas"),

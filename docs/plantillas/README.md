@@ -33,27 +33,15 @@ Finora ve números, pero no los entiende lo suficiente para decidir. En los dos 
 ## Estructura
 
 ```
-finora/            motor de análisis
-  load.py            carga y conversión a COP (×10.000 ingresos; ×100.000.000 S&M)
-  mrr.py             modelo actual vs. corregido (mora, puestas al día, prepagos, retroactivos, subidas de precio)
-  two_layer.py       modelo propuesto de dos capas (cliente vs. pricing/descuentos)
-  aggregates.py      tablas agregadas para las apps (sin detalle por cliente) y sensibilidad por regla
-  figures.py         cifras clave: única fuente de los números de README, HALLAZGOS y NOTA_CORTA
-  funnel.py          métricas del funnel (cohortes, Kitagawa, speed-to-lead, gráfico de control, estancados)
-  funnel_synth.py    generador SINTÉTICO del funnel con problemas plantados
-  xmr.py             gráfico de comportamiento del proceso (señal vs. ruido, Wheeler)
-sql/               mismo análisis en SQL (DuckDB/Postgres) + DDL del modelo de dos capas
-tests/             {{n_pruebas}} pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
-app/               las tres apps en Streamlit (leen solo app/data/, agregados)
-  historia.py        historia ejecutiva (video 1)
-  demo.py            proceso con IA y análisis completo (video 2)
-  tablero.py         tablero operativo para revisiones futuras
-  operar.py          vistas del tablero: revisión mensual del MRR (CFO) y semanal del funnel (CRO)
-  common.py          datos, constantes y navegación compartidos por las tres apps
-  brand.py           marca (un solo tema, claro) y componentes de gráfico
-docs/              modelo de datos, diseño y revisión del tablero, plantillas de los documentos y capturas
-notebooks/         exploración inicial (perfilado)
-pipeline.py        corre todo, regenera app/data/ y genera README, HALLAZGOS y NOTA_CORTA desde docs/plantillas/
+finora/      motor: carga y unidades (load), modelo actual vs. corregido (mrr), dos capas (two_layer), agregados y
+             sensibilidad (aggregates), cifras clave y documentos (figures), funnel y prototipo sintético (funnel,
+             funnel_synth), gráfico XmR (xmr)
+sql/         el mismo análisis en DuckDB/Postgres y el DDL del modelo de dos capas
+tests/       {{n_pruebas}} pruebas: casos del CFO, conciliación, SQL = Python, XmR, documentos y las 3 apps
+app/         las tres apps en Streamlit (historia, demo, tablero) sobre app/data/, solo agregados
+docs/        modelo de datos, diseño del tablero, plantillas de los documentos y capturas
+notebooks/   5 notebooks con salidas: del perfilado a las conclusiones (notebooks/README.md)
+pipeline.py  corre todo, regenera app/data/ y genera README, HALLAZGOS y NOTA_CORTA desde docs/plantillas/
 ```
 
 ## Reproducir

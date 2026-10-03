@@ -4,8 +4,8 @@ from pathlib import Path
 import pandas as pd
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
-AMOUNT_TO_COP = 10_000          # Transactions: 25 = 250.000 COP
-SM_TO_COP = 100_000_000         # S&M: 1.04 = 104.000.000 COP
+AMOUNT_TO_COP = 10_000
+SM_TO_COP = 100_000_000
 
 
 def load_transactions(data_dir: Path = DATA_DIR) -> pd.DataFrame:
@@ -26,7 +26,6 @@ def load_sm_spend(data_dir: Path = DATA_DIR) -> pd.DataFrame:
     sm = pd.read_csv(data_dir / "S&M_spend.csv", encoding="utf-8-sig")
     items = [c for c in sm.columns if c != "Month"]
     for c in items:
-        # "$1.040" / "-$0.016": el punto es decimal (ej. del enunciado: 1.04 = 104.000.000)
         sm[c] = pd.to_numeric(sm[c].astype(str).str.replace("$", "", regex=False), errors="raise") * SM_TO_COP
     sm["month"] = pd.PeriodIndex(sm["Month"], freq="M")
     sm["sm_total_cop"] = sm[items].sum(axis=1)

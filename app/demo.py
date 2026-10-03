@@ -1,9 +1,4 @@
-"""Finora · demo y proceso con IA (video 2).
-
-Cómo trabajé con IA paso a paso, y el análisis completo de los dos casos con sus fundamentos.
-Solo usa tablas AGREGADAS (app/data/, sin detalle por cliente) y un funnel SINTÉTICO generado en vivo.
-Ejecutar:  streamlit run app/demo.py
-"""
+"""Finora · demo y proceso con IA (video 2)."""
 from __future__ import annotations
 
 import sys
@@ -12,21 +7,21 @@ from pathlib import Path
 APP = Path(__file__).resolve().parent
 sys.path[:0] = [str(APP.parent), str(APP)]
 
-import fresh  # noqa: E402
+import fresh
 
-fresh.reload_project_modules()          # no mezclar versiones viejas y nuevas tras un redespliegue
+fresh.reload_project_modules()
 
-import pandas as pd  # noqa: E402
-import plotly.graph_objects as go  # noqa: E402
-import streamlit as st  # noqa: E402
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
 
-import brand as B  # noqa: E402
-import common as C  # noqa: E402
-from common import (ACT, COR, MOVE_LABELS, MOVES, SRC_SYN, SRC_TX, WINDOW_START, bridge_totals, load,  # noqa: E402
+import brand as B
+import common as C
+from common import (ACT, COR, MOVE_LABELS, MOVES, SRC_SYN, SRC_TX, WINDOW_START, bridge_totals, load,
                     mrr_series, nrr12, synthetic)
-from finora import funnel as F  # noqa: E402
-from finora.funnel_synth import CHANNELS  # noqa: E402
-from finora.two_layer import two_layer_movements  # noqa: E402
+from finora import funnel as F
+from finora.funnel_synth import CHANNELS
+from finora.two_layer import two_layer_movements
 
 S_IA = "Proceso · cómo trabajé con IA"
 S_CFO = "Caso CFO · ¿por qué cambió el MRR?"
@@ -37,13 +32,12 @@ S_DQ = "Fundamentos · calidad de datos y supuestos"
 SECTIONS = [S_IA, S_CFO, S_CRO, S_DM, S_SM, S_DQ]
 
 T, section = C.page("demo", SECTIONS, "cómo lo resolví y con qué evidencia")
-MOVE_COLORS = dict(zip(MOVES, T.viz))                      # orden fijo viz-1…6 (validado en ambos temas)
-MODEL_COLORS = {COR: T.viz[0], ACT: T.viz[1]}              # corregido = viz-1, actual = viz-2 (validado)
-CHANNEL_COLORS = dict(zip(CHANNELS, T.viz))                # cada canal conserva su color en todo el reporte
+MOVE_COLORS = dict(zip(MOVES, T.viz))
+MODEL_COLORS = {COR: T.viz[0], ACT: T.viz[1]}
+CHANNEL_COLORS = dict(zip(CHANNELS, T.viz))
 ta, tc = bridge_totals(ACT), bridge_totals(COR)
 ny = C.new_by_year()
 
-# =====================================================================================
 if section == S_IA:
     st.title("Cómo trabajé con IA: la IA propone y escribe; yo defino las reglas y verifico")
     B.tags([("mint", ["Python", "SQL", "DuckDB", "pandas"]), ("lavender", ["Claude Code", "Claude con búsqueda web"]),
@@ -126,7 +120,6 @@ if section == S_IA:
                 "- El funnel es sintético y está rotulado en cada gráfico.")
     st.caption("Bitácora completa (AI_LOG.md), código y pruebas en el repositorio.")
 
-# =====================================================================================
 elif section == S_CFO:
     st.title("¿Por qué cambió nuestro MRR?")
     st.caption("Modelo actual (caja) vs. modelo corregido · abril 2022 a octubre 2024 · millones de COP")
@@ -231,7 +224,6 @@ elif section == S_CFO:
                        format_func={"nrr": "NRR", "grr": "GRR", "logo_retention": "Retención de clientes"}.get)
     h = rc[(rc["model"] == model_r) & (rc["cohort"] >= "2022Q2") & (rc["age"] <= 18)]
     hp = h.pivot(index="cohort", columns="age", values=metric) * 100
-    # divergente con el neutro fijo en 100 %: durazno = pierde MRR, cielo = lo hace crecer (polaridad, no magnitud)
     lo, hi = 40, 120
     mid = (100 - lo) / (hi - lo)
     pos = [0, mid / 3, 2 * mid / 3, mid, mid + (1 - mid) / 3, mid + 2 * (1 - mid) / 3, 1]
@@ -290,7 +282,6 @@ elif section == S_CFO:
         st.markdown('<div class="da-source">Regla: el cliente creció el mes en que hizo el upgrade, no el mes en que se '
                     'venció el descuento · mismo resultado en Python y en SQL</div>', unsafe_allow_html=True)
 
-# =====================================================================================
 elif section == S_CRO:
     st.title("Más leads, pero no más ventas: ¿dónde se pierde el crecimiento?")
     tab_real, tab_design, tab_proto = st.tabs(["Datos reales (clientes ganados)", "Diseño del funnel",
@@ -324,7 +315,7 @@ elif section == S_CRO:
                       SRC_TX, 360, right=120)
         kt = C.ticket_kitagawa()
         mix, rate, r0, r1 = kt["mix"], kt["rate"], kt["ticket0"], kt["ticket1"]
-        order = rate.sort_values(ascending=False).index      # barras horizontales: los nombres largos no se pisan
+        order = rate.sort_values(ascending=False).index
         f2 = go.Figure()
         f2.add_bar(y=order, x=rate[order].values, orientation="h", name="Dentro de la industria (cambia su ticket)",
                    marker_color=T.viz[0], hovertemplate="%{y}<br>Dentro de la industria: %{x:,.0f} COP<extra></extra>")
@@ -398,7 +389,7 @@ elif section == S_CRO:
             f.add_bar(x=v.index.astype(str), y=v[ch], name=ch, marker_color=CHANNEL_COLORS[ch],
                       hovertemplate="%{x}<br>" + ch + ": %{y}<extra></extra>")
         f.update_layout(barmode="stack")
-        tot_m = v.sum(axis=1)                               # cifras calculadas, no escritas a mano
+        tot_m = v.sum(axis=1)
         pre = (v.index < pd.Period("2024-03", "M")) & (v.index >= pd.Period("2023-07", "M"))
         post_ = v.index >= pd.Period("2024-03", "M")
         vol_up = tot_m[post_].mean() / tot_m[pre].mean() - 1
@@ -437,7 +428,7 @@ elif section == S_CRO:
         c3, c4 = st.columns(2, gap="medium")
         with c3:
             cs = F.conversion_by_speed(r)
-            cs = cs[cs["size"] >= 50]                       # sin tramos de muestra chica
+            cs = cs[cs["size"] >= 50]
             f4 = go.Figure()
             for ch in ["Paid Social", "Paid Search", "Outbound"]:
                 s = cs[cs["channel"] == ch]
@@ -451,7 +442,7 @@ elif section == S_CRO:
                           SRC_SYN, 340, ysuffix=" %")
         with c4:
             pc = F.p_chart(r, "Working", "Engaged", 30, as_of)
-            pc = pc[pc["n"] >= 0.5 * pc["n"].median()]      # sin semanas de muestra chica
+            pc = pc[pc["n"] >= 0.5 * pc["n"].median()]
             f5 = go.Figure()
             f5.add_scatter(x=pc["week"], y=pc["ucl"] * 100, name="Límite superior", mode="lines",
                            line=dict(color=T.line_strong, width=1), showlegend=False, hoverinfo="skip")
@@ -492,7 +483,6 @@ elif section == S_CRO:
         st.caption(f"Lista operativa: {B.es(len(stl), 0)} leads abiertos superan el P90 histórico de su etapa y camino, y se "
                    "reparten por owner en la operación diaria.")
 
-# =====================================================================================
 elif section == S_DM:
     st.title("Modelo de datos propuesto: valor de la suscripción ≠ precio pagado")
     st.markdown("**net MRR = list MRR − discount MRR.** La lista es comportamiento del cliente; el descuento es una "
@@ -539,7 +529,6 @@ elif section == S_DM:
                       ("MRR en mora", "Net MRR de clientes past_due", "Churn involuntario y política de cobro"),
                   ], columns=["Métrica", "Definición", "Decisión que habilita"]))
 
-# =====================================================================================
 elif section == S_SM:
     st.title("S&M y eficiencia comercial")
     B.callout("Lectura con cautela: el S&M incluye nómina y equipo, no hay atribución por canal ni separación entre "
@@ -580,7 +569,6 @@ elif section == S_SM:
                 "problema principal, o hay que revisar las unidades o el alcance del S&M. **Es una pregunta para "
                 "Finanzas, no una conclusión.**")
 
-# =====================================================================================
 else:
     st.title("Calidad de datos, supuestos y lo que no se puede concluir")
     dq = load("data_quality")

@@ -1,11 +1,4 @@
-"""Finora · historia ejecutiva (video 1, para CEO, CFO y CRO).
-
-Situación, hallazgos, implicación, decisión y acción: una idea por pantalla, con botones para avanzar.
-Todas las cifras salen de las mismas tablas agregadas que usan la demo y el tablero.
-Dirección visual: claridad suiza dentro de la marca. Bordes sin sombra, pocas cajas; lo que es una lista ordenada
-se dibuja como filas numeradas y lo que es tiempo, como un riel.
-Ejecutar:  streamlit run app/historia.py
-"""
+"""Finora · historia ejecutiva (video 1, para CEO, CFO y CRO)."""
 from __future__ import annotations
 
 import html
@@ -15,23 +8,23 @@ from pathlib import Path
 APP = Path(__file__).resolve().parent
 sys.path[:0] = [str(APP.parent), str(APP)]
 
-import fresh  # noqa: E402
+import fresh
 
-fresh.reload_project_modules()          # no mezclar versiones viejas y nuevas tras un redespliegue
+fresh.reload_project_modules()
 
-import pandas as pd  # noqa: E402
-import plotly.graph_objects as go  # noqa: E402
-import streamlit as st  # noqa: E402
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
 
-import brand as B  # noqa: E402
-import common as C  # noqa: E402
-from common import ACT, COR, MOVE_LABELS, MOVES, SRC_TX  # noqa: E402
-from finora.two_layer import two_layer_movements  # noqa: E402
+import brand as B
+import common as C
+from common import ACT, COR, MOVE_LABELS, MOVES, SRC_TX
+from finora.two_layer import two_layer_movements
 
 SCREENS = ["1 · Situación", "2 · Hallazgo del MRR", "3 · Hallazgo de ventas", "4 · Implicación", "5 · Decisión",
            "6 · Acción"]
 T, section = C.page("historia", SCREENS, "para CEO, CFO y CRO")
-NAME = {COR: "Modelo corregido", ACT: "Modelo actual (caja)"}   # sin jerga de reglas para un público ejecutivo
+NAME = {COR: "Modelo corregido", ACT: "Modelo actual (caja)"}
 MODEL_COLORS = {COR: T.viz[0], ACT: T.viz[1]}
 i = SCREENS.index(section)
 
@@ -105,9 +98,8 @@ mrr = C.mrr_series(COR)
 cust = sum(tc.get(m, 0) for m in C.CUSTOMER_MOVES)
 steps()
 
-F_ = C.FIGURES          # las tres cifras de la historia salen de la misma tabla que la nota y los hallazgos
+F_ = C.FIGURES
 
-# =====================================================================================
 if i == 0:
     st.title(f"El MRR creció {F_['crec_mrr']} %, pero hoy no sabemos explicar por qué")
     s = mrr.loc["2022-03":] / 1e6
@@ -128,7 +120,6 @@ if i == 0:
                 f'con las unidades del enunciado, el S&M duplica el MRR ({F_["sm_vs_mrr"]} veces). Antes de cualquier '
                 'decisión de inversión hay que confirmarlas con Finanzas.</div>', unsafe_allow_html=True)
 
-# =====================================================================================
 elif i == 1:
     st.title(f"El modelo de caja exagera el churn {F_['x_churn']} veces")
     st.markdown(f'<div class="hs-lead"><b>Respuesta al CFO:</b> de {F_["cambio_neto"]} MM de crecimiento, '
@@ -144,7 +135,7 @@ elif i == 1:
     B.chart_frame("h_bridge", "",
                   f"El total cuadra, el porqué no: churn {F_['cor_churn']} MM real contra {F_['act_churn']} MM en caja",
                   "Movimientos de MRR acumulados por tipo · millones de COP · abr-2022 a oct-2024", fig, None, SRC_TX, 220)
-    demo = f'<a href="{C.LINKS["demo"]}?s=5">la demo</a>' if C.LINKS["demo"] else "la demo"
+    demo = f'<a href="{C.LINKS["demo"]}?s=5">la demo</a>'
     st.markdown(
         '<div class="da-callout da-callout-info"><p><b>Cómo lo corrige el modelo</b></p><div class="hs-rules">'
         "<div><b>Un mes sin pago no es churn:</b> el cliente sigue activo hasta 2 meses en mora.</div>"
@@ -155,7 +146,6 @@ elif i == 1:
         f"{F_['sens_xchurn_min']} y {F_['sens_xchurn_max']} veces exagerado. Reglas completas y sensibilidad en {demo}.</p>"
         "</div>", unsafe_allow_html=True)
 
-# =====================================================================================
 elif i == 2:
     st.title(f"Ganamos el doble de clientes, pero entran {F_['caida_m3']} % más pequeños")
     idx = pd.DataFrame({"Clientes nuevos por mes": ny["per_month"] / ny.loc["2022", "per_month"] * 100,
@@ -174,7 +164,6 @@ elif i == 2:
               "cliente, o de descuentos de entrada. Ninguna de las explicaciones del equipo (demanda, calidad, velocidad, "
               "post-SQL) se puede confirmar ni descartar sin eventos del funnel.")
 
-# =====================================================================================
 elif i == 3:
     st.title("Con el modelo actual, Finora invertiría en el lugar equivocado")
     B.text_frame("h_impl", "", "Cada lectura del modelo actual empuja una decisión distinta",
@@ -192,10 +181,9 @@ elif i == 3:
                       "Contratar o recortar canales a ciegas"),
                  ], columns=["Tema", "El modelo actual dice", "Los datos muestran", "Riesgo de decidir con el actual"]))
 
-# =====================================================================================
 elif i == 4:
     st.title("El fin de un descuento no es expansión: hay que medir el MRR en dos capas")
-    mv = two_layer_movements([100, 130, 130], [0, 30, 0])          # el motor de dos capas, no texto escrito a mano
+    mv = two_layer_movements([100, 130, 130], [0, 30, 0])
     names = {"expansion": "Expansión", "contraction": "Contracción", "discount_start": "Inicio de descuento",
              "discount_end": "Fin de descuento"}
 
@@ -223,7 +211,6 @@ elif i == 4:
     B.callout("<b>Lo que no decidiría todavía:</b> contratar SDR, recortar canales o mover el S&M sin el funnel por "
               "eventos.", kind="warn")
 
-# =====================================================================================
 else:
     st.title("En 90 días, cada cierre puede separar lo que hace el cliente de lo que decide Finora")
     rail([
@@ -237,7 +224,7 @@ else:
          "Etapas con fecha y hora, canal, camino y dueño. Arranca la revisión semanal de 30 minutos con alertas "
          "estadísticas."),
     ])
-    tablero = f'<a href="{C.LINKS["tablero"]}">tablero operativo</a>' if C.LINKS["tablero"] else "tablero operativo"
+    tablero = f'<a href="{C.LINKS["tablero"]}">tablero operativo</a>'
     split([
         ("Cómo se opera · CFO, mensual en el cierre", "¿El cambio del mes es señal o ruido?",
          f"Puente en dos capas, rango normal de cada movimiento, lo que está en confirmación, y dueño y acción por "

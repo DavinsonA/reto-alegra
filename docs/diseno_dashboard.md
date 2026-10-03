@@ -22,17 +22,7 @@
 | **Explicativo ≠ exploratorio.** Para comunicar: una **gran idea** en una frase y una historia de 3 minutos. | Knaflic, *Storytelling with Data* | La historia ejecutiva es una app aparte: una idea por pantalla, de la situación a la acción. Operar y profundizar viven en otras dos apps. |
 | **Por qué fallan los tableros:** viven fuera del flujo de trabajo, las métricas no tienen dueño ni umbral, demasiados indicadores trasladan el análisis al lector, las definiciones cambian entre equipos. | Reveal BI, Data Cult, Revelynk | Pocas métricas por vista (≤ 4 KPI), cada una con dueño, umbral y acción; definiciones enlazadas al diccionario. |
 
-## 2. Diagnóstico de la versión actual
-
-| Lo que ya está bien | Lo que falta para que sea útil |
-|---|---|
-| Hallazgos con datos reales, títulos que dicen el hallazgo, "Ver datos", fuente | **Es explicativa y de una sola vez:** cuenta el análisis, pero no sirve para la revisión del próximo mes |
-| Modelo actual vs. corregido, sensibilidad, simulador del CFO | **No hay selector de periodo:** todo es acumulado o 31 meses juntos |
-| Prototipo del funnel con problemas plantados | **No hay estado señal/ruido** en las series mensuales del CFO |
-| Marca y accesibilidad validadas | **No hay dueños, umbrales ni acciones** por métrica; tampoco formato fijo de revisión |
-| | El CRO no tiene una vista semanal en formato fijo ni un árbol de métricas que conecte entradas con el MRR nuevo |
-
-## 3. Especificación: arquitectura de la app
+## 2. Especificación: arquitectura de la app
 
 Tres apps, una por **uso**, sobre el mismo motor y las mismas tablas agregadas (`app/common.py`), para que una cifra se corrija en un solo lugar:
 
@@ -75,13 +65,13 @@ Al final de la vista: **Comportamiento del cliente vs. pricing vs. descuentos** 
 5. **Lista operativa:** leads estancados por etapa y owner (> P90).
 6. **Dueños y reglas.**
 
-## 4. Reglas de diseño (se mantienen)
+## 3. Reglas de diseño (se mantienen)
 - Título = hallazgo; subtítulo = qué, unidad y periodo; "Ver datos"; fuente y fecha de corte.
 - Máximo 4 KPI por fila, la principal en mint; toda variación dice contra qué se compara.
 - Paleta validada por tema; un solo eje Y; el estado siempre lleva palabra o ícono, nunca solo color.
 - **Formato fijo semana a semana:** mismos gráficos, mismo orden, mismos colores (WBR).
 
-## 5. Fuentes
+## 4. Fuentes
 - Stephen Few, *Common Pitfalls in Dashboard Design* (Perceptual Edge, 2006): [PDF](https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf)
 - Commoncog, [The Amazon Weekly Business Review](https://commoncog.com/the-amazon-weekly-business-review/) y [Process Behaviour Charts: More Than You Need To Know](https://commoncog.com/process-behaviour-charts-more-than-you-need/)
 - [Shewhart individuals control chart](https://en.wikipedia.org/wiki/Shewhart_individuals_control_chart) (constantes 2,66 y 3,267)

@@ -1,7 +1,4 @@
-"""Pipeline reproducible del reto: carga → modelos de MRR → tablas de salida para el análisis y la demo.
-
-Uso:  python pipeline.py          (escribe en outputs/ e imprime el resumen)
-"""
+"""Pipeline reproducible del reto: carga → modelos de MRR → tablas de salida para el análisis y la demo."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,7 +10,7 @@ from finora.load import load_industry, load_sm_spend, load_transactions
 from finora.mrr import ALL_MOVES, Rules, bridge, build_customer_month
 
 OUT = Path(__file__).resolve().parent / "outputs"
-WINDOW_START = pd.Period("2022-04", "M")   # ene–mar 2022 = periodo de arranque (censura a la izquierda)
+WINDOW_START = pd.Period("2022-04", "M")
 MM = 1e6
 
 
@@ -83,7 +80,6 @@ def main() -> None:
     print(f"contracción total corregida: {contr:.1f} MM → si las bajadas a la mitad fueran descuentos, "
           f"la contracción por comportamiento sería {contr - half['delta'].sum() / MM:.1f} MM")
 
-    # ----- Caso 1: lado Won del funnel: nuevos clientes, ticket de entrada, industria
     first = cm[(cm["mv"] == "new") & (cm["month"] >= WINDOW_START)].copy()
     first["year"] = first["month"].dt.year
     months_in_year = {2022: 9, 2023: 12, 2024: 10}
@@ -103,14 +99,12 @@ def main() -> None:
     print(f"Δ ticket promedio = {(mix.sum() + rate.sum()):.0f} COP  (mezcla {mix.sum():.0f}, dentro de industria {rate.sum():.0f})")
     k.to_csv(OUT / "kitagawa_entry_ticket.csv")
 
-    # ----- Robustez: ticket al 3er mes (descarta descuentos de bienvenida en el primer pago)
     cm["age"] = (cm["month"] - cm["first_paid_month"]).apply(lambda d: d.n)
     m3 = cm[(cm["age"] == 2) & cm["customer_id"].isin(first["customer_id"])].merge(
         first[["customer_id", "year"]], on="customer_id")
     print("\n=== MRR promedio al 3er mes por año de alta (COP; incluye a los que ya se fueron con 0)")
     print(m3.groupby("year")["mrr_cop"].agg(["count", "mean", "median"]).round(0).to_string())
 
-    # ----- Retención por cohorte a 12 meses (NRR y GRR), actual vs corregido
     rows = []
     for mrr_col, label in (("mrr_actual_cop", "actual"), ("mrr_cop", "corregido")):
         for cy, g in first.groupby("year"):
@@ -128,7 +122,6 @@ def main() -> None:
     print("\n=== Retención a 12 meses por cohorte de alta\n", ret.round(3).to_string(index=False))
     ret.to_csv(OUT / "retention_12m.csv", index=False)
 
-    # ----- Revenue no capturado / en riesgo (lo que se puede medir hoy)
     gap = w[w["status"] == "gap"]
     unpaid = gap.loc[~gap["gap_paid"], "mrr_cop"].sum() / MM
     print(f"\n=== MRR reconocido en meses de mora nunca pagados: {unpaid:.1f} MM "
@@ -136,7 +129,6 @@ def main() -> None:
     last = cm[cm["month"] == cm["month"].max()]
     print(f"MRR en mora abierta al cierre (oct-2024): {last.loc[last['status'] == 'delinquent_open', 'mrr_cop'].sum() / MM:.1f} MM "
           f"de {last['mrr_cop'].sum() / MM:.1f} MM")
-    # fuga acumulada si las bajadas a la mitad fueran descuentos (cota superior): meses que se mantuvo la rebaja
     leak = 0.0
     for cid, g in cm[cm["customer_id"].isin(cm.loc[cm["half_cut"], "customer_id"])].groupby("customer_id"):
         lv, hc = g["mrr_cop"].to_numpy(), g["half_cut"].to_numpy()
@@ -149,7 +141,6 @@ def main() -> None:
                 j += 1
     print(f"Cota superior de 'revenue no capturado' si las bajadas a la mitad fueran descuentos: {leak / MM:.1f} MM acumulados")
 
-    # ----- S&M y CAC (combinado, con advertencias)
     q = sm.assign(q=sm["month"].dt.asfreq("Q")).groupby("q")["sm_total_cop"].sum()
     nq = first.assign(q=first["month"].dt.asfreq("Q")).groupby("q").agg(n=("customer_id", "nunique"), mrr=("delta", "sum"))
     cac = pd.DataFrame({"sm_MM": q / MM}).join(nq, how="inner")
@@ -158,13 +149,11 @@ def main() -> None:
     print("\n=== CAC combinado por trimestre (S&M total / clientes nuevos)\n", cac.round(2).to_string())
     cac.to_csv(OUT / "cac_quarterly.csv")
 
-    # ----- Tablas agregadas para la demo pública (sin detalle por cliente)
     from finora.aggregates import export_app_data
     app_data = Path(__file__).resolve().parent / "app" / "data"
     export_app_data(tx, ind, sm, app_data)
     print("\nTablas agregadas para la demo escritas en app/data/")
 
-    # ----- Cifras clave: única fuente de los números de README, HALLAZGOS y NOTA_CORTA
     from finora.figures import TEMPLATES, key_figures, render_docs
     data = {n: pd.read_csv(app_data / f"{n}.csv") for n in
             ("rule_sensitivity", "retention_cohorts", "half_cut_monthly", "new_customers_monthly", "cac_quarterly")}

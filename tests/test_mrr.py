@@ -7,8 +7,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from finora.load import load_transactions  # noqa: E402
-from finora.mrr import Rules, bridge, build_customer_month, classify, infer_customer  # noqa: E402
+from finora.load import load_transactions
+from finora.mrr import Rules, bridge, build_customer_month, classify, infer_customer
 
 
 def run(cash, rules=Rules()):
@@ -28,13 +28,12 @@ def test_hueco_de_un_mes_con_puesta_al_dia_no_es_churn():
     assert "churn" not in mv and "reactivation" not in mv
     assert inf["status"][2] == "gap" and inf["gap_paid"][2]
     assert inf["extra_kind"][3] == "arrears" and inf["extra"][3] == pytest.approx(6.3)
-    # el modelo actual sí lo ve como churn + reactivación
     mv_actual, _ = classify(np.array([6.3, 6.3, 0, 12.6, 6.3]))
     assert list(mv_actual)[2:4] == ["churn", "reactivation"]
 
 
 def test_hueco_largo_pagado_completo_no_es_churn():
-    cash = [12.6] + [0] * 7 + [100.8, 12.6]      # patrón real (anonimizado): paga 8 meses de mora de una vez
+    cash = [12.6] + [0] * 7 + [100.8, 12.6]
     inf, mv, _ = run(cash)
     assert "churn" not in mv and all(inf["status"][1:8] == "gap")
 
@@ -45,11 +44,11 @@ def test_hueco_mayor_a_N_sin_pago_es_churn_y_reactivacion():
 
 
 def test_subida_de_precio_con_retroactivo():
-    inf, mv, delta = run([8.4, 8.4, 10.232, 8.858, 8.858])   # patrón real (anonimizado): +5,45% con 3 meses retroactivos
+    inf, mv, delta = run([8.4, 8.4, 10.232, 8.858, 8.858])
     assert mv[2] == "price_uplift" and inf["uplift"][2] == "high"
     assert delta[2] == pytest.approx(0.458)
     assert inf["extra_kind"][2] == "retro" and inf["extra"][2] == pytest.approx(1.374)
-    assert mv[3] == "none"                       # el modelo actual vería aquí una contracción
+    assert mv[3] == "none"
 
 
 def test_alza_persistente_moderada_es_precio_de_confianza_media():
@@ -81,7 +80,7 @@ def test_mora_abierta_al_final_se_mantiene_marcada():
 
 def test_prepago_anual_se_reparte_en_12_meses_y_luego_churn():
     r = Rules(prepay_min_amount=20)
-    cash = [0, 94.5] + [0] * 15                  # patrón real (anonimizado): 94,5 = 12 × 10,5 × 0,75 (anual con 25% dto.)
+    cash = [0, 94.5] + [0] * 15
     inf, mv, _ = run(cash, r)
     assert inf["level"][1:13] == pytest.approx([94.5 / 12] * 12)
     assert all(inf["status"][2:13] == "prepaid")
@@ -90,7 +89,7 @@ def test_prepago_anual_se_reparte_en_12_meses_y_luego_churn():
 
 def test_prepago_anual_renovado_no_es_churn():
     r = Rules(prepay_min_amount=20)
-    cash = [80.36] + [0] * 11 + [76.34] + [0] * 11   # patrón real (anonimizado): renueva 12 meses después
+    cash = [80.36] + [0] * 11 + [76.34] + [0] * 11
     _, mv, _ = run(cash, r)
     assert "churn" not in mv and "reactivation" not in mv and mv[12] == "contraction"
 
@@ -101,20 +100,17 @@ def test_ceros_largos_al_final_son_churn():
 
 
 def test_subida_en_el_ultimo_mes_queda_en_confirmacion():
-    # sin mes siguiente no se puede comprobar que el alza persista: se marca, igual que el churn final
     inf, mv, _ = run([10, 10, 10, 10.85])
     assert mv[3] == "price_uplift" and inf["uplift"][3] == "pending"
     inf2, _, _ = run([10, 10, 10.85, 10.85])
-    assert inf2["uplift"][2] == "medium"         # con un mes más, se confirma
+    assert inf2["uplift"][2] == "medium"
 
 
 def test_pago_grande_al_final_es_prepago_en_confirmacion():
     r = Rules(prepay_min_amount=20)
-    # patrón real (anonimizado): paga grande cada ~12 meses; tras 3 meses en 0 paga grande en el último mes
     inf, mv, _ = run([5, 5, 5, 0, 0, 0, 40], r)
     assert mv[6] == "reactivation" and inf["level"][6] == pytest.approx(5)
     assert inf["extra_kind"][6] == "prepaid_pending" and inf["extra"][6] == pytest.approx(35)
-    # cliente nuevo que paga grande cerca del final: nivel = pago / 12 y los meses siguientes quedan cubiertos
     inf2, mv2, _ = run([0, 96, 0, 0], r)
     assert mv2[1] == "new" and inf2["level"][1] == pytest.approx(8)
     assert list(inf2["status"][2:]) == ["prepaid", "prepaid"] and "churn" not in mv2
@@ -123,7 +119,6 @@ def test_pago_grande_al_final_es_prepago_en_confirmacion():
 def test_sin_puestas_al_dia_el_pago_doble_es_expansion_y_contraccion():
     _, mv, _ = run([6.3, 6.3, 0, 12.6, 6.3], Rules(detect_catchup=False))
     assert mv[3:5] == ["expansion", "contraction"]
-    # rel_tol = 0 no apaga la regla: los montos de los datos son múltiplos exactos
     inf, _, _ = run([6.3, 6.3, 0, 12.6, 6.3], Rules(rel_tol=0))
     assert inf["extra_kind"][3] == "arrears"
 

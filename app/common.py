@@ -1,7 +1,4 @@
-"""Piezas compartidas por las tres apps (historia, demo, tablero): datos agregados, constantes y navegación.
-
-Las tres leen las mismas tablas de app/data/ (sin detalle por cliente), así que una cifra se corrige en un solo lugar.
-"""
+"""Piezas compartidas por las tres apps (historia, demo, tablero): datos agregados, constantes y navegación."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,16 +21,14 @@ MOVE_LABELS = {"new": "Nuevos", "expansion": "Expansión (cliente)", "price_upli
                "reactivation": "Reactivación", "contraction": "Contracción", "churn": "Churn"}
 CUSTOMER_MOVES = ["new", "expansion", "reactivation", "contraction", "churn"]
 
-FIGURES = load_figures(DATA / "key_figures.csv")   # cifras clave: la misma fuente que README, HALLAZGOS y NOTA_CORTA
-N_TESTS = FIGURES["n_pruebas"]                     # lo escribe pipeline.py contando las pruebas de pytest
+FIGURES = load_figures(DATA / "key_figures.csv")
+N_TESTS = FIGURES["n_pruebas"]
 
 APPS = {"historia": "Historia ejecutiva", "demo": "Demo y proceso con IA", "tablero": "Tablero operativo"}
 REPO = "https://github.com/DavinsonA/reto-alegra/blob/main"
-# Enlaces públicos de cada app: se llenan al publicar en Streamlit Community Cloud
 LINKS = {"historia": "https://finora-historia.streamlit.app/", "demo": "https://finora-demo.streamlit.app/", "tablero": "https://finora-tablero.streamlit.app/"}
 
 
-# ---------- datos ----------
 @st.cache_data
 def load(name: str) -> pd.DataFrame:
     return pd.read_csv(DATA / f"{name}.csv")
@@ -46,7 +41,6 @@ def fig_num(name: str) -> float:
 
 @st.cache_data
 def synthetic():
-    # el ticket de los ganados sintéticos se alinea con el ticket de entrada real de 2024
     return generate(target_ticket=fig_num("ticket_2024"))
 
 
@@ -75,8 +69,8 @@ def new_by_year() -> pd.DataFrame:
 def nrr12(model: str, year: str) -> float:
     rc = load("retention_cohorts")
     r = rc[(rc["model"] == model) & (rc["cohort"].str.startswith(year)) & (rc["age"] == 12)
-           & (rc["cohort"] >= "2022Q2")]                      # misma ventana que el resto: altas desde abr-2022
-    return float(r["mrr_sum"].sum() / r["start_sum"].sum())     # ponderado por MRR inicial
+           & (rc["cohort"] >= "2022Q2")]
+    return float(r["mrr_sum"].sum() / r["start_sum"].sum())
 
 
 def ticket_kitagawa(y0: str = "2022", y1: str = "2024") -> pd.DataFrame:
@@ -102,7 +96,7 @@ def rule_sensitivity() -> tuple[pd.DataFrame, bool]:
     base = cor.iloc[0]
     stable = True
     for c in SENS_COLS:
-        if c == "price_uplift_cop":                      # apagar la regla de precio lo lleva a 0 por definición
+        if c == "price_uplift_cop":
             continue
         ratio = cor[c] / base[c]
         stable &= bool(((ratio > 0) & (ratio.abs().between(0.1, 10))).all())
@@ -130,7 +124,6 @@ def nonmrr_cash() -> pd.Series:
     return nm[nm["month"] >= WINDOW_START].groupby("extra_kind")["amount_cop"].sum().sort_values()
 
 
-# ---------- página y navegación ----------
 _BI_CSS = """<style>
 .block-container { max-width:none !important; padding:0.75rem 2rem 2rem !important; }
 .da-bar-name { font:600 20px/26px var(--font-display); color:var(--ink); }
@@ -147,10 +140,7 @@ def _keep_section(sections: list[str]) -> None:
 
 
 def page(app: str, sections: list[str], blurb: str, top_nav: bool = False) -> tuple[B.Theme, str]:
-    """Configura la página con la marca y devuelve (tema, sección elegida). `?s=2` abre la sección 2.
-
-    top_nav: diseño de herramienta BI (lienzo ancho, barra superior con las páginas, barra lateral plegada).
-    """
+    """Configura la página con la marca y devuelve (tema, sección elegida)."""
     st.set_page_config(page_title=f"Finora · {APPS[app]}", layout="wide",
                        initial_sidebar_state="collapsed" if top_nav else "auto")
     t = B.inject()
@@ -167,7 +157,7 @@ def page(app: str, sections: list[str], blurb: str, top_nav: bool = False) -> tu
         with c2:
             section = st.segmented_control("Página", sections, key="sec", label_visibility="collapsed",
                                            on_change=_keep_section, args=(sections,))
-        others = " · ".join(f'<a href="{LINKS[k]}">{APPS[k]}</a>' for k in APPS if k != app and LINKS[k])
+        others = " · ".join(f'<a href="{LINKS[k]}">{APPS[k]}</a>' for k in APPS if k != app)
         c3.markdown(f'<div class="da-bar-meta">Datos reales agregados · corte oct-2024<br>{others}</div>',
                     unsafe_allow_html=True)
         st.markdown('<div class="da-bar-rule"></div>', unsafe_allow_html=True)
@@ -178,12 +168,5 @@ def page(app: str, sections: list[str], blurb: str, top_nav: bool = False) -> tu
     st.sidebar.divider()
     st.sidebar.caption("Datos reales **agregados**, sin detalle por cliente. Montos en COP; 1 MM = 1 millón.")
     st.sidebar.caption("El funnel usa datos **sintéticos**, rotulados como tales.")
-    others = [f"[{APPS[k]}]({LINKS[k]})" for k in APPS if k != app and LINKS[k]]
-    if others:
-        st.sidebar.caption("Otras vistas: " + " · ".join(others))
+    st.sidebar.caption("Otras vistas: " + " · ".join(f"[{APPS[k]}]({LINKS[k]})" for k in APPS if k != app))
     return t, section
-
-
-def link(app: str, label: str | None = None) -> str:
-    """Enlace markdown a otra app; si aún no está publicada, solo el nombre."""
-    return f"[{label or APPS[app]}]({LINKS[app]})" if LINKS[app] else f"**{label or APPS[app]}**"

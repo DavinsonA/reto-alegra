@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from finora.figures import TOKEN, load_figures, render_docs  # noqa: E402
+from finora.figures import TOKEN, load_figures, render_docs
 
 
 def test_documentos_coinciden_con_las_cifras():

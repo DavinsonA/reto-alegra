@@ -10,9 +10,9 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from finora.load import load_transactions  # noqa: E402
-from finora.mrr import bridge, build_customer_month  # noqa: E402
-from finora.two_layer import two_layer_movements  # noqa: E402
+from finora.load import load_transactions
+from finora.mrr import bridge, build_customer_month
+from finora.two_layer import two_layer_movements
 
 
 @pytest.fixture(scope="module")
@@ -40,12 +40,11 @@ def test_sql_y_python_dan_el_mismo_puente_actual(con):
 
 
 CFO_CASES = {
-    # cliente: (lista mes 1, lista mes 2, descuento mes 1, descuento mes 2)
-    1: (100, 100, 0, 20),    # pagaba 100, ahora 80 por descuento
-    2: (100, 80, 0, 0),      # pagaba 100, ahora 80 por downgrade
-    3: (100, 130, 0, 30),    # creció a 130 con descuento de 30: sigue pagando 100
-    4: (130, 130, 30, 0),    # termina el descuento
-    5: (100, 0, 20, 0),      # churn con descuento vigente
+    1: (100, 100, 0, 20),
+    2: (100, 80, 0, 0),
+    3: (100, 130, 0, 30),
+    4: (130, 130, 30, 0),
+    5: (100, 0, 20, 0),
 }
 
 

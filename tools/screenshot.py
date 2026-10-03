@@ -1,9 +1,4 @@
-"""Capturas de las apps para revisión visual (usa el Chrome instalado vía Playwright).
-
-Uso: python tools/screenshot.py <salida> <puerto> [secciones...]   (la app debe correr en http://localhost:<puerto>)
-Tamaño: SHOT_WIDTH y SHOT_HEIGHT. Modo del sistema emulado: SHOT_SCHEME=light|dark (las apps son solo claras).
-Si una sección tiene pestañas, también captura cada pestaña.
-"""
+"""Capturas de las apps. Uso: python tools/screenshot.py <salida> <puerto> [secciones...] con la app en localhost:<puerto>."""
 import os
 import sys
 from pathlib import Path
@@ -19,7 +14,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 def settle(page):
     page.wait_for_selector('[data-testid="stSidebar"]', state="attached", timeout=60_000)
     page.wait_for_timeout(1500)
-    try:                                                   # esperar a que terminen de dibujarse los gráficos
+    try:
         page.wait_for_function("document.querySelectorAll('[data-testid=\"stSkeleton\"]').length === 0", timeout=20_000)
     except Exception:
         pass

@@ -1,11 +1,4 @@
-"""Métricas del funnel propuesto (Caso 1). Funcionan sobre cualquier tabla de eventos con el esquema
-leads(lead_id, created_at, channel, path, company_size, speed_to_lead_h) + events(lead_id, stage, ts).
-
-Principios:
-- **Alcance de etapa** por lead (¿llegó alguna vez a X?), no posición actual.
-- **Conversión por cohorte de creación con ventana fija**; las cohortes inmaduras no se comparan.
-- **Camino** explícito (self_serve / direct_sql / sdr_full): un self-serve no es una "fuga" del funnel SDR.
-"""
+"""Métricas del funnel propuesto (Caso 1)."""
 from __future__ import annotations
 
 import numpy as np
@@ -91,7 +84,6 @@ def p_chart(r: pd.DataFrame, frm: str, to: str, window_days: int, as_of: pd.Time
     g["ucl"] = pbar + 3 * np.sqrt(pbar * (1 - pbar) / g["n"])
     g["lcl"] = (pbar - 3 * np.sqrt(pbar * (1 - pbar) / g["n"])).clip(lower=0)
     g["out_of_limits"] = (g["p"] < g["lcl"]) | (g["p"] > g["ucl"])
-    # Regla de rachas (Western Electric): 8 semanas seguidas del mismo lado de la línea central = cambio de nivel
     side = np.sign(g["p"] - pbar)
     run = side.groupby((side != side.shift()).cumsum()).cumcount() + 1
     g["shift"] = (run >= 8) & (side != 0)
@@ -100,15 +92,10 @@ def p_chart(r: pd.DataFrame, frm: str, to: str, window_days: int, as_of: pd.Time
 
 
 def period_metrics(r: pd.DataFrame, as_of: pd.Timestamp, freq: str = "W") -> pd.DataFrame:
-    """Entradas y salidas del funnel por semana ('W') o mes ('M'), solo con periodos maduros para cada tasa.
-
-    Entradas controlables: volumen de leads, mezcla de alto ajuste, speed-to-lead P50, SLA < 1 h,
-    Working → Engaged (30 días), SQL → Won (60 días). Salidas: clientes nuevos, MRR nuevo, ticket.
-    """
+    """Entradas y salidas del funnel por semana ('W') o mes ('M'), solo con periodos maduros para cada tasa."""
     def per(ts):
         return ts.dt.to_period(freq).dt.start_time
 
-    out = pd.DataFrame(index=pd.Index([], name="period"))
     created = per(r["created_at"])
     out = r.groupby(created).agg(leads=("created_at", "size"),
                                  high_fit=("company_size", lambda s: (s != "micro").mean()))
@@ -125,31 +112,26 @@ def period_metrics(r: pd.DataFrame, as_of: pd.Timestamp, freq: str = "W") -> pd.
     wn = won.groupby(per(won["Won"])).agg(new_customers=("Won", "size"), new_mrr=("mrr_cop", "sum"))
     out = out.join(s2l).join(w2e.rename("work_to_eng")).join(s2w.rename("sql_to_won")).join(wn)
     out["ticket"] = out["new_mrr"] / out["new_customers"]
-    last_full = as_of.to_period(freq).start_time          # el periodo en curso está incompleto
+    last_full = as_of.to_period(freq).start_time
     return out[out.index < last_full]
 
 
 def stalled(r: pd.DataFrame, events: pd.DataFrame, as_of: pd.Timestamp) -> pd.DataFrame:
-    """Leads abiertos cuyo tiempo en la etapa actual supera el P90 histórico de su etapa y camino.
-
-    El P90 se mide sobre los leads que SÍ avanzaron (cuánto tardan en pasar a la etapa siguiente), así que un lead
-    abierto puede superarlo aunque, por definición, solo el 10 % de los que avanzan tarde más.
-    """
+    """Leads abiertos cuyo tiempo en la etapa actual supera el P90 histórico de su etapa y camino."""
     last = events.sort_values("ts").groupby("lead_id").tail(1).set_index("lead_id")
-    last = last[~last["stage"].isin(["Won", "Lost"])]          # solo leads abiertos
+    last = last[~last["stage"].isin(["Won", "Lost"])]
     last["days_in_stage"] = (as_of - last["ts"]).dt.total_seconds() / 86400
     last = last.join(r[["channel", "path", "company_size"]])
     rows = []
     for path, g in r.groupby("path"):
         for i, s in enumerate(STAGES[:-1]):
-            nxt = r.loc[g.index, STAGES[i + 1:]].min(axis=1)    # llegada a la siguiente etapa que viva (con saltos)
+            nxt = r.loc[g.index, STAGES[i + 1:]].min(axis=1)
             dur = ((nxt - g[s]).dt.total_seconds() / 86400).dropna()
             if len(dur) >= 30:
                 rows.append((path, s, dur.quantile(0.9)))
     p90 = pd.DataFrame(rows, columns=["path", "stage", "p90_stage"])
     last = last.reset_index().merge(p90, on=["path", "stage"], how="left").set_index("lead_id")
     out = last[(last["days_in_stage"] > last["p90_stage"]) & (last["days_in_stage"] <= 120)].reset_index()
-    # dueño sintético determinístico: SDR en etapas tempranas, AE desde SQL
     ae = out["stage"].isin(["SQL", "Demo", "Proposal"])
     out["owner"] = np.where(ae, "AE " + (out["lead_id"] % 4 + 1).astype(str), "SDR " + (out["lead_id"] % 8 + 1).astype(str))
     return out

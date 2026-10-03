@@ -7,9 +7,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from finora import funnel as F  # noqa: E402
-from finora.funnel_synth import generate  # noqa: E402
-from finora.xmr import xmr  # noqa: E402
+from finora import funnel as F
+from finora.funnel_synth import generate
+from finora.xmr import xmr
 
 AS_OF = pd.Timestamp("2024-10-31")
 

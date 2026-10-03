@@ -1,10 +1,4 @@
-"""Evita mezclar versiones de código tras un redespliegue.
-
-Streamlit (también en Community Cloud) vuelve a ejecutar el script principal cuando cambia el código, pero puede
-conservar en memoria la versión vieja de los módulos importados. Así pasó en la demo publicada: el script nuevo pedía
-`common.FIGURES` a un `common` viejo y fallaba con AttributeError. Cada app llama a `reload_project_modules()` antes de
-importar sus módulos: recarga los del proyecto que ya estén en memoria, dependencias primero.
-"""
+"""Evita mezclar versiones de código tras un redespliegue."""
 from __future__ import annotations
 
 import importlib
@@ -12,8 +6,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DIRS = (ROOT / "app", ROOT / "finora")                     # solo el código de las apps y el motor
-ORDER = ("finora.", "brand", "common", "operar")          # primero lo que no depende de nada del proyecto
+DIRS = (ROOT / "app", ROOT / "finora")
+ORDER = ("finora.", "brand", "common", "operar")
 
 
 def _rank(name: str) -> int:

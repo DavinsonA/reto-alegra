@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from finora.xmr import xmr  # noqa: E402
+from finora.xmr import xmr
 
 
 def test_limites_con_constante_2_66():

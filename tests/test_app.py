@@ -51,7 +51,6 @@ def test_historia_avanza_con_botones():
 def test_simulador_cfo_todos_los_casos():
     options = [s for s in _open("demo", 1).selectbox if s.label == "Caso"][0].options
     for opt in options:
-        # cada caso cambia los valores por defecto de los inputs: se vuelve a cargar la app limpia
         at = _open("demo", 1)
         [s for s in at.selectbox if s.label == "Caso"][0].set_value(opt).run()
         assert not at.exception, (opt, [e.message for e in at.exception])
